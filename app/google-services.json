@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "722895876897",
+    "firebase_url": "https://moj-super-projekt.firebaseio.com",
+    "project_id": "moj-super-projekt",
+    "storage_bucket": "moj-super-projekt.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:722895876897:android:2e8d1c99430ef1f08dc460",
+        "android_client_info": {
+          "package_name": "com.insudev.euvictodo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "722895876897-c11toegef10r1hg5l14r4b6c8kb5fuof.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.insudev.euvictodo",
+            "certificate_hash": "4c49db98a25fc055db64877996103a2468a7fa2b"
+          }
+        },
+        {
+          "client_id": "722895876897-3uojujd4b0dgajr1pt8f0lvefdpm64qt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBizT62M286cL6j1IwoD7hGZ9jrujMtzfk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "722895876897-3uojujd4b0dgajr1pt8f0lvefdpm64qt.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
