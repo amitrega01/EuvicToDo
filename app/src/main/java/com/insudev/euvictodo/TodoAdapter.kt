@@ -1,26 +1,17 @@
 package com.insudev.euvictodo
 
 import android.content.Context
-import android.graphics.Color
 import android.graphics.Paint
 import android.util.Log
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.resources.TextAppearance
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.google.type.Date
-import com.hannesdorfmann.mosby3.mvi.MviActivity
 import com.insudev.euvictodo.models.TodoModel
-import org.jetbrains.anko.backgroundColor
 import org.jetbrains.anko.sdk25.coroutines.onClick
-import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
-import kotlin.reflect.typeOf
 
 class TodoAdapter(val context : Context) :     RecyclerView.Adapter<MyViewHolder>() {
     var myDataset =  ArrayList<TodoModel>()
@@ -48,7 +39,7 @@ class TodoAdapter(val context : Context) :     RecyclerView.Adapter<MyViewHolder
         holder.checkBox_status.isChecked = todo.status
         holder.text_date.text = Date(todo.timeStamp).toLocaleString()
         if (todo.status) {
-            holder.content.setPaintFlags(Paint.STRIKE_THRU_TEXT_FLAG)
+            holder.content.paintFlags = Paint.STRIKE_THRU_TEXT_FLAG
         } else {
             holder.content.paintFlags = Paint.ANTI_ALIAS_FLAG
         }
@@ -60,8 +51,8 @@ class TodoAdapter(val context : Context) :     RecyclerView.Adapter<MyViewHolder
             }
             var listType = object : TypeToken<ArrayList<TodoModel>>() {
             }.type
-            val editor = sharedPrefs.edit();
-            val json = sharedPrefs.getString("JSON","{}");
+            val editor = sharedPrefs.edit()
+            val json = sharedPrefs.getString("JSON", "{}")
             var array = ArrayList<TodoModel>()
             array = Gson().fromJson(json, listType)
            array.forEach { x->
@@ -70,8 +61,8 @@ class TodoAdapter(val context : Context) :     RecyclerView.Adapter<MyViewHolder
            }
             Log.i("DODAWANIE", Gson().toJson(array))
             editor.putString("JSON",Gson().toJson(array)).commit()
-
-            (context as MainActivity).statusChange();
+//
+//            (context as MainActivity).statusChange();
         }
 
     }

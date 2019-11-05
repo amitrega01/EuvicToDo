@@ -2,33 +2,57 @@ package com.insudev.euvictodo.data
 
 import android.content.SharedPreferences
 import android.util.Log
-import com.google.android.gms.tasks.Task
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.QuerySnapshot
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.insudev.euvictodo.SORTING
 import com.insudev.euvictodo.models.TodoModel
 import io.reactivex.Observable
-import org.jetbrains.anko.doAsync
-import java.util.Random
+import java.util.*
+import kotlin.collections.ArrayList
+
 object Repository {
 
-    fun loadTodos(sharedPrefs: SharedPreferences, sorting: SORTING): Observable<ArrayList<TodoModel>> = Observable.fromArray(getAll(sharedPrefs, sorting))
+    fun loadTodos(sharedPrefs: SharedPreferences): Observable<ArrayList<TodoModel>> =
+        Observable.fromArray(getAll(sharedPrefs))
+
+
     var listType = object : TypeToken<ArrayList<TodoModel>>() {
 
     }.type
-    private fun getAll(sharedPrefs: SharedPreferences, sorting: SORTING): ArrayList<TodoModel> {
-        val json = sharedPrefs.getString("JSON","{}");
+
+    private fun getAll(sharedPrefs: SharedPreferences): ArrayList<TodoModel> {
+        val json = sharedPrefs.getString("JSON", "{}")
         var array = ArrayList<TodoModel>()
         if (json != "{}")
-        Log.i("SORTING", sorting.toString())
             array =
                 Gson().fromJson(json, listType)
-        return when (sorting){
-            SORTING.ASCENDING -> ArrayList(array.sortedWith(compareByDescending { it.timeStamp }))
-            SORTING.DESCENDING -> ArrayList(array.sortedWith(compareBy{ it.timeStamp }))
-        }
+        Log.i("ARRAY", array.toString())
+        return ArrayList(array)
+    }
+
+
+    fun addNewTodo(
+        sharedPrefs: SharedPreferences,
+        todoContent: String
+    ): Observable<ArrayList<TodoModel>> {
+        val json = sharedPrefs.getString("JSON", "{}")
+        var array = ArrayList<TodoModel>()
+        if (json != "{}")
+            array =
+                Gson().fromJson(json, listType)
+        array.add(
+            TodoModel(
+                array.last().id + 1,
+                Date().toString(),
+                todoContent,
+                false,
+                arrayListOf("elo")
+            )
+        )
+        val editor = sharedPrefs.edit()
+
+        val newjson = Gson().toJson(array)
+        editor.putString("JSON", newjson).commit()
+        return Observable.fromArray(array)
     }
 }
 
