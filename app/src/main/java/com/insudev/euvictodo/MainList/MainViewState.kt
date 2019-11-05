@@ -9,7 +9,7 @@ data class MainViewState(
     var todoList: ArrayList<TodoModel> = ArrayList(),
     var filter: Filters = Filters.ALL,
     var searchPhrase: String = "",
-    var sorting: Sorting = Sorting.DESCENDING,
+    var sorting: Sorting = Sorting.ASCENDING,
     var message: String = "",
     var isLoadingFailed: Boolean = false
 

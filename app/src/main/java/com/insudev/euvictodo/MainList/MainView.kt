@@ -12,6 +12,7 @@ interface MainView : MvpView {
     val search: Observable<String>
     val updateTodo: Observable<Int>
     val sortingChange: Observable<Sorting>
+    val clearFinished: Observable<Unit>
     fun render(state: MainViewState)
 }
 

@@ -19,6 +19,19 @@ object Repository {
 
     }.type
 
+    fun clearFinished(sharedPrefs: SharedPreferences): Observable<ArrayList<TodoModel>> {
+        val json = sharedPrefs.getString("JSON", "{}")
+        var array = ArrayList<TodoModel>()
+        if (json != "{}")
+            array =
+                Gson().fromJson(json, listType)
+        Log.i("ARRAY", array.toString())
+        array = ArrayList(array.filter { x -> !x.status })
+        val editor = sharedPrefs.edit()
+        val newjson = Gson().toJson(array)
+        editor.putString("JSON", newjson).commit()
+        return Observable.fromArray(array)
+    }
     private fun getAll(sharedPrefs: SharedPreferences): ArrayList<TodoModel> {
         val json = sharedPrefs.getString("JSON", "{}")
         var array = ArrayList<TodoModel>()
@@ -50,23 +63,37 @@ object Repository {
     ): Observable<ArrayList<TodoModel>> {
         val json = sharedPrefs.getString("JSON", "{}")
         var array = ArrayList<TodoModel>()
-        if (json != "{}")
+        if (json != "{}") {
+
             array =
                 Gson().fromJson(json, listType)
-        array.add(
-            TodoModel(
-                array.last().id + 1,
-                Date().toString(),
-                todoContent,
-                false,
-                arrayListOf("elo")
+            array.add(
+                TodoModel(
+                    array.last().id + 1,
+                    Date().toString(),
+                    todoContent,
+                    false,
+                    arrayListOf("elo")
+                )
             )
-        )
+        } else {
+            array.add(
+                TodoModel(
+                    1,
+                    Date().toString(),
+                    todoContent,
+                    false,
+                    arrayListOf("elo")
+                )
+            )
+        }
         val editor = sharedPrefs.edit()
 
         val newjson = Gson().toJson(array)
         editor.putString("JSON", newjson).commit()
         return Observable.fromArray(array)
     }
+
+
 }
 

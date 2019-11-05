@@ -3,6 +3,7 @@ package com.insudev.euvictodo
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.hannesdorfmann.mosby3.mvi.MviActivity
@@ -47,41 +48,48 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
     override val search = PublishSubject.create<String>()
     override val updateTodo = PublishSubject.create<Int>()
     override val sortingChange = PublishSubject.create<Sorting>()
+    override val clearFinished = PublishSubject.create<Unit>()
 
     override  fun render(state: MainViewState) {
-        Log.i("STATE", state.toString())
-        if (state.isLoading) Log.i("LOADING", "TRUE")
-        loadingIndicator.visible = state.isLoading
-        Log.i("VIEWADAPTER DATA", state.filter.toString())
-        var temp = when (state.filter) {
-            Filters.ALL -> ArrayList(state.todoList
-                .filter { x ->
-                    x.content.toLowerCase().contains(state.searchPhrase.toLowerCase())
-                })
-            Filters.FINISHED -> ArrayList(state.todoList
-                .filter { x -> x.status }
-                .filter { x ->
-                    x.content.toLowerCase().contains(state.searchPhrase.toLowerCase())
-                })
-            Filters.UNFINISHED -> ArrayList(state.todoList
-                .filter { x -> !x.status }
-                .filter { x ->
-                    x.content.toLowerCase().contains(state.searchPhrase.toLowerCase())
-                })
-        }
-        temp = when (state.sorting) {
-            Sorting.ASCENDING -> ArrayList(temp.sortedWith(compareByDescending { it.timeStamp }))
-            Sorting.DESCENDING -> ArrayList(temp.sortedWith(compareBy { it.timeStamp }))
-        }
+        if (state.isLoadingFailed) {
+            Toast.makeText(this, state.message, Toast.LENGTH_LONG)
+        } else {
+            loadingIndicator.visible = state.isLoading
+            clear_button.visible = false
+            var temp = when (state.filter) {
+                Filters.ALL -> ArrayList(state.todoList
+                    .filter { x ->
+                        x.content.toLowerCase().contains(state.searchPhrase.toLowerCase())
+                    })
+                Filters.FINISHED -> {
+                    clear_button.visible = true
+                    ArrayList(state.todoList
+                        .filter { x -> x.status }
+                        .filter { x ->
+                            x.content.toLowerCase().contains(state.searchPhrase.toLowerCase())
+                        })
+                }
+                Filters.UNFINISHED -> ArrayList(state.todoList
+                    .filter { x -> !x.status }
+                    .filter { x ->
+                        x.content.toLowerCase().contains(state.searchPhrase.toLowerCase())
+                    })
 
-        viewAdapter.myDataset = temp
-        viewAdapter.dataChanges()
+            }
+            temp = when (state.sorting) {
+                Sorting.ASCENDING -> ArrayList(temp.sortedWith(compareByDescending { it.timeStamp }))
+                Sorting.DESCENDING -> ArrayList(temp.sortedWith(compareBy { it.timeStamp }))
+            }
 
-        sorting_button.text = when (state.sorting) {
-            Sorting.DESCENDING -> "DESC"
-            Sorting.ASCENDING -> "ASC"
+            viewAdapter.myDataset = temp
+            viewAdapter.dataChanges()
+
+            sorting_button.text = when (state.sorting) {
+                Sorting.DESCENDING -> "DESC"
+                Sorting.ASCENDING -> "ASC"
+            }
+
         }
-
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -92,8 +100,11 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
         fab_newTodo.setOnClickListener {
             dialog.show()
             dialog.addButton.clicks().map {
+                viewAdapter.notifyDataSetChanged()
                 dialog.hide()
-                return@map dialog.contentText.text.toString()
+                val content = dialog.contentText.text.toString()
+                dialog.contentText.text.clear()
+                return@map content
             }.subscribe {
                 addTodo.onNext(it)
             }.addTo(subscriptions)
@@ -145,6 +156,15 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
                 else -> return@map Sorting.ASCENDING
             }
         }.subscribe { sortingChange.onNext(it) }.addTo(subscriptions)
+
+        clear_button.clicks().map {
+
+            viewAdapter.notifyDataSetChanged()
+
+        }
+            .subscribe {
+                clearFinished.onNext(it)
+            }.addTo(subscriptions)
 
     }
 

@@ -24,6 +24,7 @@ class MainViewReducer {
                     is TodoListChangeResult.Error -> {
                         currentState.isLoading = false
                         currentState.isLoadingFailed = true
+                        currentState.message = change.result.error
                     }
                 }
             }
@@ -37,11 +38,11 @@ class MainViewReducer {
                         currentState.isLoading = false
                         currentState.isLoadingFailed = false
                         currentState.filter = change.filter.filter
-                        Log.i("FILTER", change.filter.filter.toString())
                     }
                     is FilterChangeResult.Error -> {
                         currentState.isLoading = false
                         currentState.isLoadingFailed = true
+                        currentState.message = change.filter.error
                     }
                 }
             }
@@ -59,6 +60,7 @@ class MainViewReducer {
                     is SearchChangeResult.Error -> {
                         currentState.isLoading = false
                         currentState.isLoadingFailed = true
+                        currentState.message = change.search.error
                     }
                 }
             }
@@ -76,6 +78,7 @@ class MainViewReducer {
                     is SortingChangedResult.Error -> {
                         currentState.isLoading = false
                         currentState.isLoadingFailed = true
+                        currentState.message = change.sorting.error
                     }
                 }
             }

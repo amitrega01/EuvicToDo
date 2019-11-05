@@ -42,6 +42,12 @@ object GetTodoUseCase {
         return Repository.addNewTodo(sharedPrefs, newTodoContent)
 
     }
+
+    fun clearFinished(sharedPrefs: SharedPreferences): Observable<ArrayList<TodoModel>> {
+        return Repository.clearFinished(sharedPrefs)
+
+
+    }
 //    private fun getUnfinished(sharedPrefs : SharedPreferences, sorting: SORTING): Observable<MainViewState> {
 //        Log.i("POS", "getUnifinished")
 //        return Repository.loadTodos(sharedPrefs, sorting)
