@@ -2,14 +2,12 @@ package com.insudev.euvictodo
 
 import android.content.Context
 import android.graphics.Paint
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import com.insudev.euvictodo.models.TodoModel
-import org.jetbrains.anko.sdk25.coroutines.onClick
+import com.jakewharton.rxbinding3.view.clicks
+import io.reactivex.rxkotlin.addTo
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -43,27 +41,14 @@ class TodoAdapter(val context : Context) :     RecyclerView.Adapter<MyViewHolder
         } else {
             holder.content.paintFlags = Paint.ANTI_ALIAS_FLAG
         }
-        holder.checkBox_status.onClick{
-
-            myDataset.forEach { x->
-                if (x.id == todo.id)
-                    x.status = !x.status
-            }
-            var listType = object : TypeToken<ArrayList<TodoModel>>() {
-            }.type
-            val editor = sharedPrefs.edit()
-            val json = sharedPrefs.getString("JSON", "{}")
-            var array = ArrayList<TodoModel>()
-            array = Gson().fromJson(json, listType)
-           array.forEach { x->
-               if(x.id == todo.id)
-                   x.status = !x.status
-           }
-            Log.i("DODAWANIE", Gson().toJson(array))
-            editor.putString("JSON",Gson().toJson(array)).commit()
-//
-//            (context as MainActivity).statusChange();
+        holder.checkBox_status.clicks().map {
+            this.notifyDataSetChanged()
+            return@map todo.id
         }
+            .subscribe {
+                (context as MainActivity).updateTodo.onNext(it)
+            }
+            .addTo((context as MainActivity).subscriptions)
 
     }
 

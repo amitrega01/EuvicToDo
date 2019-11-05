@@ -28,6 +28,13 @@ object GetTodoUseCase {
 
     }
 
+    fun updateTodo(
+        sharedPrefs: SharedPreferences,
+        id: Int
+    ): Observable<ArrayList<TodoModel>> {
+        return Repository.updateStatus(sharedPrefs, id)
+
+    }
     fun addnewTodo(
         sharedPrefs: SharedPreferences,
         newTodoContent: String

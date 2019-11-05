@@ -29,6 +29,20 @@ object Repository {
         return ArrayList(array)
     }
 
+    fun updateStatus(sharedPrefs: SharedPreferences, id: Int): Observable<ArrayList<TodoModel>> {
+        val json = sharedPrefs.getString("JSON", "{}")
+        var array = ArrayList<TodoModel>()
+        if (json != "{}")
+            array = Gson().fromJson(json, listType)
+        array.forEach { x ->
+            if (x.id == id) x.status = !x.status
+        }
+        val editor = sharedPrefs.edit()
+        val newjson = Gson().toJson(array)
+        editor.putString("JSON", newjson).commit()
+        return Observable.fromArray(array)
+    }
+
 
     fun addNewTodo(
         sharedPrefs: SharedPreferences,

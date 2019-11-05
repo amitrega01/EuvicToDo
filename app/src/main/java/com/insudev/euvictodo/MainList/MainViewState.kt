@@ -1,6 +1,7 @@
 package com.insudev.euvictodo.MainList
 
 import com.insudev.euvictodo.buisnesslogic.Filters
+import com.insudev.euvictodo.models.Sorting
 import com.insudev.euvictodo.models.TodoModel
 
 data class MainViewState(
@@ -8,6 +9,7 @@ data class MainViewState(
     var todoList: ArrayList<TodoModel> = ArrayList(),
     var filter: Filters = Filters.ALL,
     var searchPhrase: String = "",
+    var sorting: Sorting = Sorting.DESCENDING,
     var message: String = "",
     var isLoadingFailed: Boolean = false
 

@@ -48,30 +48,24 @@ class MainPresenter(sharedPrefs : SharedPreferences) : MviBasePresenter<MainView
             .startWith(SearchChangeResult.Pending())
             .map { MainViewStateChange.SearchChange(it) as MainViewStateChange }
 
-//        val mainState: Observable<MainViewState> = intent(MainView::showAllTodos)
-//                .subscribeOn(Schedulers.io())
-//                .debounce(400, TimeUnit.MILLISECONDS)
-//                .switchMap { GetTodoUseCase.getAllTodos(sharedPrefs, it) }
-////                .doOnNext { Timber.d("Received new state: " + it) }
-//                .observeOn(AndroidSchedulers.mainThread())
-//
-//        val searchIntent  =intent { it.searchTodos }
-//            .subscribeOn(Schedulers.io())
-//            .debounce(400, TimeUnit.MILLISECONDS)
-//            .switchMap { GetTodoUseCase.searchTodos(sharedPrefs, it.phrase,it.sorting) }
-//            .observeOn(AndroidSchedulers.mainThread())
-//
-//        val showFiltered = intent { it.showFiltered }
-//            .subscribeOn(Schedulers.io())
-//            .debounce(400,TimeUnit.MILLISECONDS)
-//            .switchMap { GetTodoUseCase.getFiltered(sharedPrefs, it.filter, it.sorting) }
-//            .observeOn(AndroidSchedulers.mainThread())
-//
-//
-
-//
+        val updateTodo = intent { it.updateTodo }
+            .switchMap {
+                Log.i("UPDATE", it.toString())
+                val array = GetTodoUseCase.updateTodo(sharedPrefs, it)
+                return@switchMap array
+                    .map { TodoListChangeResult.Completed(it) as TodoListChangeResult }
+                    .startWith(TodoListChangeResult.Pending())
+            }.map {
+                return@map MainViewStateChange.TodoListChange(it) as MainViewStateChange
+            }
+        val sortingChange = intent { it.sortingChange }
+            .map { SortingChangedResult.Completed(it) as SortingChangedResult }
+            .startWith(SortingChangedResult.Pending())
+            .map { MainViewStateChange.SortingChange(it) as MainViewStateChange }
         val stream = Observable
             .merge(initIntent, addTodo, changeFilter, search)
+            .mergeWith(updateTodo)
+            .mergeWith(sortingChange)
             .scan(MainViewState()) { state: MainViewState, change: MainViewStateChange ->
                 return@scan reducer.reduce(state, change)
             }

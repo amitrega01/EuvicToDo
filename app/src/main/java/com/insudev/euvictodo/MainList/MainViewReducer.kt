@@ -62,6 +62,23 @@ class MainViewReducer {
                     }
                 }
             }
+            is MainViewStateChange.SortingChange -> {
+                when (change.sorting) {
+                    is SortingChangedResult.Pending -> {
+                        currentState.isLoading = true
+                        currentState.isLoadingFailed = false
+                    }
+                    is SortingChangedResult.Completed -> {
+                        currentState.isLoading = false
+                        currentState.isLoadingFailed = false
+                        currentState.sorting = change.sorting.newSorting
+                    }
+                    is SortingChangedResult.Error -> {
+                        currentState.isLoading = false
+                        currentState.isLoadingFailed = true
+                    }
+                }
+            }
         }
 //
 //        when  (currentState.filter) {

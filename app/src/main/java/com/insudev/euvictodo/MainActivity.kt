@@ -11,6 +11,7 @@ import com.insudev.euvictodo.MainList.MainView
 import com.insudev.euvictodo.MainList.MainViewState
 import com.insudev.euvictodo.buisnesslogic.Filters
 import com.insudev.euvictodo.dialogNewTodo.NewTodoDialog
+import com.insudev.euvictodo.models.Sorting
 import com.jakewharton.rxbinding3.recyclerview.dataChanges
 import com.jakewharton.rxbinding3.view.clicks
 import com.jakewharton.rxbinding3.widget.checkedChanges
@@ -37,19 +38,22 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
 
 
     private lateinit var recyclerView: RecyclerView
-    private lateinit var viewAdapter: TodoAdapter
+    lateinit var viewAdapter: TodoAdapter
     private lateinit var viewManager: RecyclerView.LayoutManager
-    private val subscriptions = CompositeDisposable()
+    val subscriptions = CompositeDisposable()
 
     override val addTodo = PublishSubject.create<String>()
     override val changeFilter = PublishSubject.create<Filters>()
     override val search = PublishSubject.create<String>()
+    override val updateTodo = PublishSubject.create<Int>()
+    override val sortingChange = PublishSubject.create<Sorting>()
 
     override  fun render(state: MainViewState) {
         Log.i("STATE", state.toString())
+        if (state.isLoading) Log.i("LOADING", "TRUE")
         loadingIndicator.visible = state.isLoading
         Log.i("VIEWADAPTER DATA", state.filter.toString())
-        viewAdapter.myDataset = when (state.filter) {
+        var temp = when (state.filter) {
             Filters.ALL -> ArrayList(state.todoList
                 .filter { x ->
                     x.content.toLowerCase().contains(state.searchPhrase.toLowerCase())
@@ -65,7 +69,18 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
                     x.content.toLowerCase().contains(state.searchPhrase.toLowerCase())
                 })
         }
+        temp = when (state.sorting) {
+            Sorting.ASCENDING -> ArrayList(temp.sortedWith(compareByDescending { it.timeStamp }))
+            Sorting.DESCENDING -> ArrayList(temp.sortedWith(compareBy { it.timeStamp }))
+        }
+
+        viewAdapter.myDataset = temp
         viewAdapter.dataChanges()
+
+        sorting_button.text = when (state.sorting) {
+            Sorting.DESCENDING -> "DESC"
+            Sorting.ASCENDING -> "ASC"
+        }
 
     }
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -120,6 +135,17 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
             return@map it.toString()
         }.subscribe { search.onNext(it) }.addTo(subscriptions)
 
+
+
+        sorting_button.clicks().map {
+            viewAdapter.notifyDataSetChanged()
+            when (sorting_button.text.toString()) {
+                "DESC" -> return@map Sorting.ASCENDING
+                "ASC" -> return@map Sorting.DESCENDING
+                else -> return@map Sorting.ASCENDING
+            }
+        }.subscribe { sortingChange.onNext(it) }.addTo(subscriptions)
+
     }
 
 
@@ -158,20 +184,7 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
 //
 //        sorting_button.clicks()
 //
-//        sorting_button.setOnClickListener {
-//
-//            Log.d("SORTING", sorting.toString())
-//            when (sorting)  {
-//                SORTING.DESCENDING -> {
-//                    sorting_button.text = "ASC"
-//                    sorting= SORTING.ASCENDING
-//                }
-//                SORTING.ASCENDING-> {
-//                    sorting_button.text = "DESC"
-//                    sorting =  SORTING.DESCENDING
-//                }
-//            }
-//        }
+
 //        Log.i("JSON!!!", Gson().toJson(dataState.todos   ))
 //        viewAdapter.myDataset.clear()
 //        viewAdapter.myDataset = dataState.todos
@@ -183,7 +196,9 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
 //        loadingIndicator.visible = false
 //        Toast.makeText(this, "error ${errorState.error}", Toast.LENGTH_LONG).show()
 //    }
-
+fun not() {
+    viewAdapter.notifyDataSetChanged()
+}
     override fun onDestroy() {
         super.onDestroy()
         subscriptions.clear()
