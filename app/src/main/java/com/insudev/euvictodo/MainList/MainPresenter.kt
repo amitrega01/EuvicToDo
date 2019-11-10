@@ -6,14 +6,13 @@ import com.hannesdorfmann.mosby3.mvi.MviBasePresenter
 import com.insudev.euvictodo.buisnesslogic.GetTodoUseCase
 import io.reactivex.Observable
 
-class MainPresenter(sharedPrefs : SharedPreferences) : MviBasePresenter<MainView, MainViewState>() {
+class MainPresenter(sharedPrefs: SharedPreferences) : MviBasePresenter<MainView, MainViewState>() {
 
     private val reducer: MainViewReducer = MainViewReducer()
     val sharedPrefs = sharedPrefs
     override fun bindIntents() {
-
+        //TODO subscribeOn  i observeOn
         val initIntent = intent { it.initIntent }
-
             .switchMap {
                 val array = GetTodoUseCase.getAllTodos(sharedPrefs)
                 Log.i("ARRAY", array.toString())
@@ -63,6 +62,7 @@ class MainPresenter(sharedPrefs : SharedPreferences) : MviBasePresenter<MainView
             }.map {
                 return@map MainViewStateChange.TodoListChange(it) as MainViewStateChange
             }
+
         val sortingChange = intent { it.sortingChange }
             .map { SortingChangedResult.Completed(it) as SortingChangedResult }
             .startWith(SortingChangedResult.Pending())

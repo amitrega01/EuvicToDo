@@ -11,15 +11,17 @@ import io.reactivex.rxkotlin.addTo
 import java.util.*
 import kotlin.collections.ArrayList
 
-class TodoAdapter(val context : Context) :     RecyclerView.Adapter<MyViewHolder>() {
-    var myDataset =  ArrayList<TodoModel>()
+class TodoAdapter(val context: Context) : RecyclerView.Adapter<MyViewHolder>() {
+    var myDataset = ArrayList<TodoModel>()
 
     val sharedPrefs = context.getSharedPreferences("MAIN", Context.MODE_PRIVATE)
 
 
     // Create new views (invoked by the layout manager)
-    override fun onCreateViewHolder(parent: ViewGroup,
-                                    viewType: Int): MyViewHolder {
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int
+    ): MyViewHolder {
         // create a new view
         var view = LayoutInflater.from(parent.context)
             .inflate(R.layout.todo_view, parent, false)
@@ -33,7 +35,7 @@ class TodoAdapter(val context : Context) :     RecyclerView.Adapter<MyViewHolder
         // - replace the contents of the view with that element
 
         val todo = myDataset.get(position)
-         holder.content.text = todo.content
+        holder.content.text = todo.content
         holder.checkBox_status.isChecked = todo.status
         holder.text_date.text = Date(todo.timeStamp).toLocaleString()
         if (todo.status) {

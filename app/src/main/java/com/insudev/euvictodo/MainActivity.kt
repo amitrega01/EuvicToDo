@@ -23,20 +23,19 @@ import io.reactivex.rxkotlin.addTo
 import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.new_todo_dialog.*
-
-
-//
-//enum class SORTING {
-//    ASCENDING,
-//    DESCENDING
-//}
-
 class MainActivity : MviActivity<MainView, MainPresenter>(),
     MainView {
 
+
+    //TODO api nestjs -> retrofit + wrapper na rx, paginacja doddawanie do obecnej listy ,
+    // flipper | steto
+    // dodawanie osobny fragment I MVI DO TEGO, obluga bledow, (cos co zwraca error)
+
+
+
+
     lateinit var dialog: NewTodoDialog
     override val initIntent: Observable<Unit> = Observable.just(Unit)
-
 
     private lateinit var recyclerView: RecyclerView
     lateinit var viewAdapter: TodoAdapter
@@ -50,7 +49,7 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
     override val sortingChange = PublishSubject.create<Sorting>()
     override val clearFinished = PublishSubject.create<Unit>()
 
-    override  fun render(state: MainViewState) {
+    override fun render(state: MainViewState) {
         if (state.isLoadingFailed) {
             Toast.makeText(this, state.message, Toast.LENGTH_LONG)
         } else {
@@ -91,6 +90,7 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
 
         }
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -99,6 +99,7 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
 
         fab_newTodo.setOnClickListener {
             dialog.show()
+
             dialog.addButton.clicks().map {
                 viewAdapter.notifyDataSetChanged()
                 dialog.hide()
@@ -158,13 +159,10 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
         }.subscribe { sortingChange.onNext(it) }.addTo(subscriptions)
 
         clear_button.clicks().map {
-
             viewAdapter.notifyDataSetChanged()
-
         }
-            .subscribe {
-                clearFinished.onNext(it)
-            }.addTo(subscriptions)
+            .subscribe { clearFinished.onNext(it) }
+            .addTo(subscriptions)
 
     }
 
@@ -174,51 +172,11 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
         return MainPresenter(sharedPreferences)
 
     }
-// override fun showAllTodos(): Observable<ArrayList<TodoModel>> = RxRecyclerViewAdapter.dataChanges(viewAdapter).map { return@map ArrayList<TodoModel>() }
 
-//    override  val showFiltered : Observable<SortedFilter>
-//        get() = RxRadioGroup.checkedChanges(group).map {
-//            Log.i("MAPPING", it.toString())
-//            if(it == radio_all.id)
-//          return@map SortedFilter(Filters.ALL, sorting)
-//            else if (it == radio_todo.id)
-//                return@map SortedFilter(Filters.UNFINISHED, sorting)
-//            else
-//                return@map SortedFilter(Filters.FINISHED, sorting)
-//
-//        }
-//
-//
-//
-//
-//    override val searchTodos : Observable<SortedSearch>
-//        get() = searchText.textChanges().map { SortedSearch(searchText.text.toString(), sorting) }
-//
-//
-//    private fun renderLoadingState() {
-//        loadingIndicator.visible = true
-//    }
-//
-//    private fun renderDataState(dataState: MainViewState.DataState) {
-//        loadingIndicator.visible = false
-//
-//        sorting_button.clicks()
-//
+    fun not() {
+        viewAdapter.notifyDataSetChanged()
+    }
 
-//        Log.i("JSON!!!", Gson().toJson(dataState.todos   ))
-//        viewAdapter.myDataset.clear()
-//        viewAdapter.myDataset = dataState.todos
-//        viewAdapter.notifyDataSetChanged()
-//
-//    }
-//
-//    private fun renderErrorState(errorState: MainViewState.ErrorState) {
-//        loadingIndicator.visible = false
-//        Toast.makeText(this, "error ${errorState.error}", Toast.LENGTH_LONG).show()
-//    }
-fun not() {
-    viewAdapter.notifyDataSetChanged()
-}
     override fun onDestroy() {
         super.onDestroy()
         subscriptions.clear()

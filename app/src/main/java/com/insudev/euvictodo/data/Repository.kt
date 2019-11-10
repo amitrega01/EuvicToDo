@@ -32,6 +32,7 @@ object Repository {
         editor.putString("JSON", newjson).commit()
         return Observable.fromArray(array)
     }
+
     private fun getAll(sharedPrefs: SharedPreferences): ArrayList<TodoModel> {
         val json = sharedPrefs.getString("JSON", "{}")
         var array = ArrayList<TodoModel>()
