@@ -1,6 +1,6 @@
-package com.insudev.euvictodo.MainList
+package com.insudev.euvictodo.mvi
 
-import com.insudev.euvictodo.buisnesslogic.Filters
+import com.insudev.euvictodo.models.Filters
 import com.insudev.euvictodo.models.Sorting
 import com.insudev.euvictodo.models.TodoModel
 
@@ -11,7 +11,8 @@ data class MainViewState(
     var searchPhrase: String = "",
     var sorting: Sorting = Sorting.ASCENDING,
     var message: String = "",
-    var isLoadingFailed: Boolean = false
+    var isLoadingFailed: Boolean = false,
+    var listSize: Int = 0
 
 )
 

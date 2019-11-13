@@ -1,12 +1,13 @@
-package com.insudev.euvictodo.MainList
+package com.insudev.euvictodo.buisnessLogic
 
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.JsonArray
 import com.google.gson.reflect.TypeToken
-import com.insudev.euvictodo.TodoService
-import com.insudev.euvictodo.buisnesslogic.Filters
+import com.insudev.euvictodo.models.Filters
+import com.insudev.euvictodo.models.Sorting
 import com.insudev.euvictodo.models.TodoModel
+import com.insudev.euvictodo.mvi.TodoListChangeResult
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
@@ -40,7 +41,10 @@ class TodoRetroService {
             .observeOn(AndroidSchedulers.mainThread())
             .map {
                 if (it != null) {
-                    TodoListChangeResult.Completed(Gson().fromJson(it, listType))
+                    TodoListChangeResult.Completed(
+                        null,
+                        Gson().fromJson(it, listType)
+                    )
                 } else {
                     TodoListChangeResult.Error(it.toString())
                 }
@@ -56,12 +60,15 @@ class TodoRetroService {
         return temp
     }
 
-    fun getFilteredTodos(filter: Filters): Observable<JsonArray> {
-        val temp = service.getFilteredTodos(filter)
+    fun getFilteredTodos(
+        filter: Filters,
+        sorting: Sorting,
+        skip: Int,
+        take: Int
+    ): Observable<ArrayList<TodoModel>> {
+        return service.getFilteredTodos(filter, sorting, skip, take)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-
-        return temp
     }
 
     fun setStatus(id: Int, filter: Filters): Observable<JsonArray> {

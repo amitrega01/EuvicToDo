@@ -1,7 +1,7 @@
-package com.insudev.euvictodo.MainList
+package com.insudev.euvictodo.mvi
 
 import com.hannesdorfmann.mosby3.mvp.MvpView
-import com.insudev.euvictodo.buisnesslogic.Filters
+import com.insudev.euvictodo.models.Filters
 import com.insudev.euvictodo.models.Sorting
 import io.reactivex.Observable
 

@@ -1,7 +1,9 @@
-package com.insudev.euvictodo
+package com.insudev.euvictodo.buisnessLogic
 
 import com.google.gson.JsonArray
-import com.insudev.euvictodo.buisnesslogic.Filters
+import com.insudev.euvictodo.models.Filters
+import com.insudev.euvictodo.models.Sorting
+import com.insudev.euvictodo.models.TodoModel
 import io.reactivex.Observable
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -17,8 +19,13 @@ interface TodoService {
     @PUT("/todos/add/{content}/{filter}")
     fun addTodo(@Path("content") content: String, @Path("filter") filter: Filters): Observable<JsonArray>
 
-    @GET("/todos/{filter}")
-    fun getFilteredTodos(@Path("filter") filter: Filters): Observable<JsonArray>
+    @GET("/todos/filter/{filter}/{sorting}/{skip}/{take}")
+    fun getFilteredTodos(
+        @Path("filter") filter: Filters,
+        @Path("sorting") sorting: Sorting,
+        @Path("skip") skip: Int,
+        @Path("take") take: Int
+    ): Observable<ArrayList<TodoModel>>
 
     @PUT("/todos/status/{id}/{filter}")
     fun setStatus(@Path("id") id: Int, @Path("filter") filter: Filters): Observable<JsonArray>

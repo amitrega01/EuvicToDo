@@ -1,11 +1,13 @@
-package com.insudev.euvictodo.MainList
+package com.insudev.euvictodo.mvi
 
 import android.content.SharedPreferences
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.hannesdorfmann.mosby3.mvi.MviBasePresenter
-import com.insudev.euvictodo.buisnesslogic.Filters
+import com.insudev.euvictodo.buisnessLogic.TodoRetroService
+import com.insudev.euvictodo.buisnessLogic.UseCase
+import com.insudev.euvictodo.models.Filters
 import com.insudev.euvictodo.models.TodoModel
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -15,7 +17,10 @@ import io.reactivex.schedulers.Schedulers
 class MainPresenter(sharedPrefs: SharedPreferences) : MviBasePresenter<MainView, MainViewState>() {
 
 
+    private lateinit var state: MainViewState
     private val retroService = TodoRetroService()
+
+    private val useCase = UseCase.instance
 
     var listType = object : TypeToken<ArrayList<TodoModel>>() {
     }.type
@@ -29,21 +34,27 @@ class MainPresenter(sharedPrefs: SharedPreferences) : MviBasePresenter<MainView,
                 return@switchMap array
                     .map {
                         TodoListChangeResult.Completed(
+                            todoList =
                             Gson().fromJson(
                                 it,
                                 listType
-                            )
+                            ), change = null
                         ) as TodoListChangeResult
                     }
                     .startWith(TodoListChangeResult.Pending())
-                    .onErrorReturn { TodoListChangeResult.Error(it.localizedMessage) }
+                    .onErrorReturn { TodoListChangeResult.Error(it.localizedMessage!!) }
         }
             .map {
                 Log.i("API", it.toString())
                 return@map MainViewStateChange.TodoListChange(it) as MainViewStateChange
             }
 
-        val scrollChange = intent { it.scrollChange }.map { Log.i("SCROLL", it.toString()) }
+        val scrollChange = intent { it.scrollChange }.switchMap {
+
+            if (it == 3)
+                useCase.getFilteredTodos(state.filter, state.sorting, state.listSize, 11)
+            else useCase.getEmpty()
+        }.map { MainViewStateChange.ScrollChange(it) as MainViewStateChange }
 
         val addTodo = intent { it.addTodo }.observeOn(Schedulers.io())
             .switchMap {
@@ -55,39 +66,29 @@ class MainPresenter(sharedPrefs: SharedPreferences) : MviBasePresenter<MainView,
             .observeOn(AndroidSchedulers.mainThread())
             .map { MainViewStateChange.TodoListChange(it) as MainViewStateChange }
 
-        val changeFilter = intent { it.changeFilter }
-            .switchMap {
-                val filter = it
-                val array = retroService.getFilteredTodos(it)
-                return@switchMap array
-                    .map {
-                        FilterChangeResult.Completed(
-                            filter,
-                            Gson().fromJson(it, listType)
-                        ) as FilterChangeResult
-                    }
-                    .startWith(FilterChangeResult.Pending())
-                    .onErrorReturn { FilterChangeResult.Error(it.localizedMessage) }
-            }
+
+        val filterChange = intent { it.changeFilter }
+            .switchMap { useCase.getFilteredTodos(it, state.sorting, 0, 11) }
             .map { MainViewStateChange.FilterChange(it) as MainViewStateChange }
 
-        val search = intent { it.search }.switchMap {
-            val search = it
-            val array =
-                retroService.getFilteredTodos(
-                    viewStateObservable.map { return@map it.filter }.blockingFirst(
-                        Filters.ALL
+
+        val search = intent { it.search }
+            .switchMap {
+                val search = it
+                val array =
+                    retroService.getFilteredTodos(
+                        state.filter
+                        , state.sorting, 0, 10
                     )
-                )
-            return@switchMap array.map {
-                SearchChangeResult.Completed(
-                    search,
-                    Gson().fromJson(it, listType)
-                ) as SearchChangeResult
+                return@switchMap array.map {
+                    TodoListChangeResult.Completed(
+                        search,
+                        it
+                    ) as TodoListChangeResult
+                }
+                    .startWith(TodoListChangeResult.Pending())
+                    .onErrorReturn { TodoListChangeResult.Error(it.localizedMessage) }
             }
-                .startWith(SearchChangeResult.Pending())
-                .onErrorReturn { SearchChangeResult.Error(it.localizedMessage) }
-        }
             .map { MainViewStateChange.SearchChange(it) as MainViewStateChange }
 
         val updateTodo = intent { it.updateTodo }
@@ -99,6 +100,7 @@ class MainPresenter(sharedPrefs: SharedPreferences) : MviBasePresenter<MainView,
                 return@switchMap array
                     .map {
                         TodoListChangeResult.Completed(
+                            null,
                             Gson().fromJson(
                                 it,
                                 listType
@@ -112,9 +114,9 @@ class MainPresenter(sharedPrefs: SharedPreferences) : MviBasePresenter<MainView,
             }
 
         val sortingChange = intent { it.sortingChange }
-            .map { SortingChangedResult.Completed(it) as SortingChangedResult }
-            .startWith(SortingChangedResult.Pending())
-            .onErrorReturn { SortingChangedResult.Error(it.localizedMessage) }
+            .map { TodoListChangeResult.Completed(it, null) as TodoListChangeResult }
+            .startWith(TodoListChangeResult.Pending())
+            .onErrorReturn { TodoListChangeResult.Error(it.localizedMessage) }
             .map { MainViewStateChange.SortingChange(it) as MainViewStateChange }
 
         val clearFinished = intent { it.clearFinished }
@@ -123,7 +125,7 @@ class MainPresenter(sharedPrefs: SharedPreferences) : MviBasePresenter<MainView,
                 return@switchMap array
                     .map {
                         TodoListChangeResult.Completed(
-                            Gson().fromJson(
+                            null, Gson().fromJson(
                                 it,
                                 listType
                             )
@@ -137,16 +139,19 @@ class MainPresenter(sharedPrefs: SharedPreferences) : MviBasePresenter<MainView,
 
 
         val stream = Observable
-            .merge(initIntent, addTodo, changeFilter, search)
+            .merge(initIntent, addTodo, filterChange, search)
             .mergeWith(updateTodo)
             .mergeWith(sortingChange)
             .mergeWith(clearFinished)
+            .mergeWith(scrollChange)
             .scan(MainViewState()) { state: MainViewState, change: MainViewStateChange ->
                 return@scan reducer.reduce(state, change)
             }
 
         subscribeViewState(stream) { view, viewState ->
+            state = viewState
             view.render(viewState)
+
         }
     }
 }

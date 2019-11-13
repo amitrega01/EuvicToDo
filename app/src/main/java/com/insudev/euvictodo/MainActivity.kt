@@ -8,12 +8,12 @@ import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.hannesdorfmann.mosby3.mvi.MviActivity
-import com.insudev.euvictodo.MainList.MainPresenter
-import com.insudev.euvictodo.MainList.MainView
-import com.insudev.euvictodo.MainList.MainViewState
-import com.insudev.euvictodo.buisnesslogic.Filters
 import com.insudev.euvictodo.dialogNewTodo.NewTodoDialog
+import com.insudev.euvictodo.models.Filters
 import com.insudev.euvictodo.models.Sorting
+import com.insudev.euvictodo.mvi.MainPresenter
+import com.insudev.euvictodo.mvi.MainView
+import com.insudev.euvictodo.mvi.MainViewState
 import com.jakewharton.rxbinding3.recyclerview.scrollStateChanges
 import com.jakewharton.rxbinding3.view.clicks
 import com.jakewharton.rxbinding3.widget.checkedChanges
@@ -24,13 +24,6 @@ import io.reactivex.rxkotlin.addTo
 import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.new_todo_dialog.*
-class MainActivity : MviActivity<MainView, MainPresenter>(),
-    MainView {
-
-
-    //TODO api nestjs -> retrofit + wrapper na rx, paginacja doddawanie do obecnej listy ,
-    // flipper | steto
-    // dodawanie osobny fragment I MVI DO TEGO, obluga bledow, (cos co zwraca error)
 
 class MainActivity : MviActivity<MainView, MainPresenter>(),
     MainView {
@@ -108,6 +101,7 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
         }.subscribe {
             Log.i("SCROLL", it.toString())
             scrollChange.onNext(it)
+
         }.addTo(subscriptions)
 
         group.checkedChanges().map {
