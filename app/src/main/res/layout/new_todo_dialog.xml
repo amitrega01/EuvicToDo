@@ -5,6 +5,13 @@
     android:layout_height="wrap_content"
     android:padding="16dp">
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="New todo"
+        android:textColor="@color/colorAccent"
+        android:textFontWeight="700"
+        android:textSize="24sp"></TextView>
     <EditText
         android:hint="Content"
         android:layout_width="300dp"

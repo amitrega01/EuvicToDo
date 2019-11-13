@@ -1,5 +1,6 @@
 package com.insudev.euvictodo
 
+import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
@@ -13,7 +14,7 @@ import com.insudev.euvictodo.MainList.MainViewState
 import com.insudev.euvictodo.buisnesslogic.Filters
 import com.insudev.euvictodo.dialogNewTodo.NewTodoDialog
 import com.insudev.euvictodo.models.Sorting
-import com.jakewharton.rxbinding3.recyclerview.dataChanges
+import com.jakewharton.rxbinding3.recyclerview.scrollStateChanges
 import com.jakewharton.rxbinding3.view.clicks
 import com.jakewharton.rxbinding3.widget.checkedChanges
 import com.jakewharton.rxbinding3.widget.textChanges
@@ -31,63 +32,45 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
     // flipper | steto
     // dodawanie osobny fragment I MVI DO TEGO, obluga bledow, (cos co zwraca error)
 
-
-
+class MainActivity : MviActivity<MainView, MainPresenter>(),
+    MainView {
 
     lateinit var dialog: NewTodoDialog
-    override val initIntent: Observable<Unit> = Observable.just(Unit)
 
     private lateinit var recyclerView: RecyclerView
     lateinit var viewAdapter: TodoAdapter
     private lateinit var viewManager: RecyclerView.LayoutManager
+
     val subscriptions = CompositeDisposable()
 
+    override val initIntent: Observable<Unit> = Observable.just(Unit)
     override val addTodo = PublishSubject.create<String>()
     override val changeFilter = PublishSubject.create<Filters>()
     override val search = PublishSubject.create<String>()
     override val updateTodo = PublishSubject.create<Int>()
     override val sortingChange = PublishSubject.create<Sorting>()
     override val clearFinished = PublishSubject.create<Unit>()
+    override val scrollChange = PublishSubject.create<Int>()
 
     override fun render(state: MainViewState) {
+        loadingIndicator.visible = state.isLoading
+
         if (state.isLoadingFailed) {
             Toast.makeText(this, state.message, Toast.LENGTH_LONG)
+            Log.i("ERR", state.message)
+            AlertDialog.Builder(this).setTitle("Error").setMessage(state.message).show()
         } else {
-            loadingIndicator.visible = state.isLoading
-            clear_button.visible = false
-            var temp = when (state.filter) {
-                Filters.ALL -> ArrayList(state.todoList
-                    .filter { x ->
-                        x.content.toLowerCase().contains(state.searchPhrase.toLowerCase())
-                    })
-                Filters.FINISHED -> {
-                    clear_button.visible = true
-                    ArrayList(state.todoList
-                        .filter { x -> x.status }
-                        .filter { x ->
-                            x.content.toLowerCase().contains(state.searchPhrase.toLowerCase())
-                        })
-                }
-                Filters.UNFINISHED -> ArrayList(state.todoList
-                    .filter { x -> !x.status }
-                    .filter { x ->
-                        x.content.toLowerCase().contains(state.searchPhrase.toLowerCase())
-                    })
-
+            Log.i("STATE", state.toString())
+            viewAdapter.myDataset = state.todoList
+            clear_button.visible = when (state.filter) {
+                Filters.FINISHED -> true
+                else -> false
             }
-            temp = when (state.sorting) {
-                Sorting.ASCENDING -> ArrayList(temp.sortedWith(compareByDescending { it.timeStamp }))
-                Sorting.DESCENDING -> ArrayList(temp.sortedWith(compareBy { it.timeStamp }))
-            }
-
-            viewAdapter.myDataset = temp
-            viewAdapter.dataChanges()
-
             sorting_button.text = when (state.sorting) {
                 Sorting.DESCENDING -> "DESC"
                 Sorting.ASCENDING -> "ASC"
             }
-
+            viewAdapter.notifyDataSetChanged()
         }
     }
 
@@ -109,25 +92,23 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
             }.subscribe {
                 addTodo.onNext(it)
             }.addTo(subscriptions)
-
         }
 
         viewManager = LinearLayoutManager(this)
         viewAdapter = TodoAdapter(this)
-
         recyclerView = findViewById<RecyclerView>(R.id.recycler).apply {
-            // use this setting to improve performance if you know that changes
-            // in content do not change the layout size of the RecyclerView
             setHasFixedSize(true)
-
-            // use a linear layout manager
             layoutManager = viewManager
-
-            // specify an viewAdapter (see also next example)
             adapter = viewAdapter
-
         }
 
+        recyclerView.scrollStateChanges().map {
+            if (recyclerView.canScrollVertically(1)) return@map 0
+            else return@map 3
+        }.subscribe {
+            Log.i("SCROLL", it.toString())
+            scrollChange.onNext(it)
+        }.addTo(subscriptions)
 
         group.checkedChanges().map {
             Log.i("MAPPING", it.toString())
@@ -160,12 +141,9 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
 
         clear_button.clicks().map {
             viewAdapter.notifyDataSetChanged()
-        }
-            .subscribe { clearFinished.onNext(it) }
-            .addTo(subscriptions)
+        }.subscribe { clearFinished.onNext(it) }.addTo(subscriptions)
 
     }
-
 
     override fun createPresenter(): MainPresenter {
         val sharedPreferences = getSharedPreferences("MAIN", Context.MODE_PRIVATE)
@@ -181,6 +159,5 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
         super.onDestroy()
         subscriptions.clear()
     }
-
 
 }
