@@ -44,13 +44,20 @@ class NewTodoActivity : AppCompatActivity() {
 
 
                     Log.i("DODAWANIE", Gson().toJson(array))
-                    array.add(TodoModel(array.size, Date().toString(), editContent.text.toString(), false, arrayListOf("123") ))
+                    array.add(
+                        TodoModel(
+                            array.size,
+                            Date().time,
+                            editContent.text.toString(),
+                            false,
+                            arrayListOf("")
+                        )
+                    )
                     Log.i("DODAWANIE", Gson().toJson(array))
                     editor.putString("JSON",Gson().toJson(array)).commit()
                     finish()
                 }
                 title = "Add"
-//TODO wyglad i zaznaczanie ze skonczone
             }
 
         }

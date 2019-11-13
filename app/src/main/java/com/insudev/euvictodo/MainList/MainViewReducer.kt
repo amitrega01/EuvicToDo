@@ -1,6 +1,7 @@
 package com.insudev.euvictodo.MainList
 
 import android.util.Log
+import com.insudev.euvictodo.models.Sorting
 
 class MainViewReducer {
 
@@ -38,6 +39,7 @@ class MainViewReducer {
                         currentState.isLoading = false
                         currentState.isLoadingFailed = false
                         currentState.filter = change.filter.filter
+                        currentState.todoList = change.filter.todoList
                     }
                     is FilterChangeResult.Error -> {
                         currentState.isLoading = false
@@ -56,6 +58,7 @@ class MainViewReducer {
                         currentState.isLoading = false
                         currentState.isLoadingFailed = false
                         currentState.searchPhrase = change.search.searchPhrase
+                        currentState.todoList = change.search.todoList
                     }
                     is SearchChangeResult.Error -> {
                         currentState.isLoading = false
@@ -83,12 +86,16 @@ class MainViewReducer {
                 }
             }
         }
+
 //
-//        when  (currentState.filter) {
-//            Filters.ALL -> currentState.todoList = currentState.todoList
-//            Filters.FINISHED -> currentState.todoList = ArrayList(currentState.todoList.filter { x-> x.status })
-//            Filters.UNFINISHED -> currentState.todoList = ArrayList(currentState.todoList.filter { x-> !x.status })
-//        }
+        currentState.todoList =
+            ArrayList(currentState.todoList.filter { x -> x.content.contains(currentState.searchPhrase) })
+
+        currentState.todoList = when (currentState.sorting) {
+            Sorting.ASCENDING -> ArrayList(currentState.todoList.sortedWith(compareByDescending { it.timeStamp }))
+            Sorting.DESCENDING -> ArrayList(currentState.todoList.sortedWith(compareBy { it.timeStamp }))
+        }
+
         return currentState
     }
 

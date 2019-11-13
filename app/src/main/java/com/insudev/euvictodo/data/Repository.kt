@@ -70,7 +70,7 @@ object Repository {
             array.add(
                 TodoModel(
                     array.last().id + 1,
-                    Date().toString(),
+                    Date().time,
                     todoContent,
                     false,
                     arrayListOf("elo")
@@ -80,7 +80,7 @@ object Repository {
             array.add(
                 TodoModel(
                     1,
-                    Date().toString(),
+                    Date().time,
                     todoContent,
                     false,
                     arrayListOf("elo")

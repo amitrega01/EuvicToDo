@@ -13,6 +13,7 @@ interface MainView : MvpView {
     val updateTodo: Observable<Int>
     val sortingChange: Observable<Sorting>
     val clearFinished: Observable<Unit>
+    val scrollChange: Observable<Int>
     fun render(state: MainViewState)
 }
 
