@@ -10,15 +10,16 @@
 
     <ProgressBar
         android:id="@+id/loadingIndicator"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
+        android:padding="32dp"
         android:translationZ="100dp"
         android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintBottom_toBottomOf="@+id/recycler"
+        app:layout_constraintEnd_toEndOf="@+id/recycler"
+        app:layout_constraintStart_toStartOf="@+id/recycler"
+        app:layout_constraintTop_toBottomOf="@+id/searchText" />
 
     <LinearLayout
 
@@ -77,8 +78,8 @@
         android:id="@+id/searchText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:ems="10"
         android:layout_margin="4dp"
+        android:ems="10"
         android:hint="Search..."
         android:inputType="text"
         android:padding="8dp"
@@ -89,9 +90,12 @@
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_width="415dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.4"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/searchText" />
 
@@ -101,9 +105,9 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="24dp"
         android:layout_marginBottom="24dp"
-        app:fabCustomSize="64dp"
         android:clickable="true"
         android:src="@drawable/ic_note_add_black_24dp"
+        app:fabCustomSize="64dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 

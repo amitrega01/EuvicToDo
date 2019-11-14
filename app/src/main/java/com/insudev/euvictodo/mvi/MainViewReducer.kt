@@ -3,11 +3,13 @@ package com.insudev.euvictodo.mvi
 import android.util.Log
 import com.insudev.euvictodo.models.Filters
 import com.insudev.euvictodo.models.Sorting
+import com.insudev.euvictodo.models.TodoModel
 
 class MainViewReducer {
 
     fun reduce(state: MainViewState, change: MainViewStateChange): MainViewState {
         val currentState = state.copy()
+        currentState.todoList = ArrayList(currentState.todoList.filter { x -> x is TodoModel })
         Log.i("PREVIOUS", currentState.toString())
         Log.i("CHANGES", currentState.toString())
         when (change) {
@@ -21,7 +23,7 @@ class MainViewReducer {
                     is TodoListChangeResult.Completed -> {
                         currentState.isLoading = false
                         currentState.isLoadingFailed = false
-                        currentState.todoList = change.result.todoList!!
+                        currentState.todoList = change.result.todoList!! as ArrayList<Any>
                         currentState.listSize = change.result.todoList.size
                     }
                     is TodoListChangeResult.Error -> {
@@ -41,7 +43,7 @@ class MainViewReducer {
                         currentState.isLoading = false
                         currentState.isLoadingFailed = false
                         currentState.filter = change.result.change!! as Filters
-                        currentState.todoList = change.result.todoList!!
+                        currentState.todoList = change.result.todoList!! as ArrayList<Any>
                         currentState.listSize = change.result.todoList.size
                     }
                     is TodoListChangeResult.Error -> {
@@ -61,7 +63,7 @@ class MainViewReducer {
                         currentState.isLoading = false
                         currentState.isLoadingFailed = false
                         currentState.searchPhrase = change.result.change!! as String
-                        currentState.todoList = change.result.todoList!!
+                        currentState.todoList = change.result.todoList!! as ArrayList<Any>
                         currentState.listSize = change.result.todoList.size
                     }
                     is TodoListChangeResult.Error -> {
@@ -115,7 +117,11 @@ class MainViewReducer {
 //
         Log.i("LIST SIZE", currentState.listSize.toString())
         currentState.todoList =
-            ArrayList(currentState.todoList.filter { x -> x.content.contains(currentState.searchPhrase) })
+            ArrayList(currentState.todoList.filter { x ->
+                (x as TodoModel).content.contains(
+                    currentState.searchPhrase
+                )
+            })
 
 //        currentState.todoList = when (currentState.sorting) {
 //            Sorting.ASCENDING -> ArrayList(currentState.todoList.sortedWith(compareByDescending { it.timeStamp }))

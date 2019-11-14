@@ -5,8 +5,18 @@ import android.widget.CheckBox
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-class MyViewHolder( item: View) : RecyclerView.ViewHolder(item) {
-     val content : TextView = item.findViewById(R.id.content)
-     val checkBox_status : CheckBox = item.findViewById(R.id.checkBox_status)
-     val text_date : TextView = item.findViewById(R.id.text_date)
+sealed class MyViewHolder(item: View) : RecyclerView.ViewHolder(item) {
+    class TodoViewHolder(item: View) : RecyclerView.ViewHolder(item) {
+        val content: TextView = item.findViewById(R.id.content)
+        val checkBox_status: CheckBox = item.findViewById(R.id.checkBox_status)
+        val text_date: TextView = item.findViewById(R.id.text_date)
+    }
+
+    class EmptyOrLoadingViewHolder(item: View) : RecyclerView.ViewHolder(item) {
+        val content: TextView = item.findViewById(R.id.content)
+    }
+
 }
+
+
+

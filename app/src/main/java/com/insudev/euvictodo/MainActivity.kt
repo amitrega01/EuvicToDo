@@ -9,12 +9,13 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.hannesdorfmann.mosby3.mvi.MviActivity
 import com.insudev.euvictodo.dialogNewTodo.NewTodoDialog
+import com.insudev.euvictodo.models.EmptyModel
 import com.insudev.euvictodo.models.Filters
 import com.insudev.euvictodo.models.Sorting
+import com.insudev.euvictodo.models.TodoModel
 import com.insudev.euvictodo.mvi.MainPresenter
 import com.insudev.euvictodo.mvi.MainView
 import com.insudev.euvictodo.mvi.MainViewState
-import com.jakewharton.rxbinding3.recyclerview.scrollStateChanges
 import com.jakewharton.rxbinding3.view.clicks
 import com.jakewharton.rxbinding3.widget.checkedChanges
 import com.jakewharton.rxbinding3.widget.textChanges
@@ -31,7 +32,7 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
     lateinit var dialog: NewTodoDialog
 
     private lateinit var recyclerView: RecyclerView
-    lateinit var viewAdapter: TodoAdapter
+    lateinit var viewAdapter: DataAdapter
     private lateinit var viewManager: RecyclerView.LayoutManager
 
     val subscriptions = CompositeDisposable()
@@ -54,7 +55,7 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
             AlertDialog.Builder(this).setTitle("Error").setMessage(state.message).show()
         } else {
             Log.i("STATE", state.toString())
-            viewAdapter.myDataset = state.todoList
+            viewAdapter.adapterDataList = state.todoList
             clear_button.visible = when (state.filter) {
                 Filters.FINISHED -> true
                 else -> false
@@ -65,6 +66,8 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
             }
             viewAdapter.notifyDataSetChanged()
         }
+
+
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -88,21 +91,13 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
         }
 
         viewManager = LinearLayoutManager(this)
-        viewAdapter = TodoAdapter(this)
+        viewAdapter = DataAdapter(this)
         recyclerView = findViewById<RecyclerView>(R.id.recycler).apply {
             setHasFixedSize(true)
             layoutManager = viewManager
             adapter = viewAdapter
         }
 
-        recyclerView.scrollStateChanges().map {
-            if (recyclerView.canScrollVertically(1)) return@map 0
-            else return@map 3
-        }.subscribe {
-            Log.i("SCROLL", it.toString())
-            scrollChange.onNext(it)
-
-        }.addTo(subscriptions)
 
         group.checkedChanges().map {
             Log.i("MAPPING", it.toString())
@@ -121,8 +116,37 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
             viewAdapter.notifyDataSetChanged()
             return@map it.toString()
         }.subscribe { search.onNext(it) }.addTo(subscriptions)
+//        recyclerView.scrollStateChanges().map {
+//            if (recyclerView.canScrollVertically(1)) return@map 0
+//            else{
+//                Log.i("ADAPTER", "Adding")
+//                viewAdapter.notifyDataSetChanged()
+//                return@map 3
+//            }}.subscribe {
+//            Log.i("SCROLL", it.toString())
+//            if (it == 3 && viewAdapter.adapterDataList.last() is TodoModel)
+//                viewAdapter.adapterDataList.add(EmptyModel("Pobierz paczke", "get"))
+//            viewAdapter.notifyDataSetChanged()
+////            scrollChange.onNext(it)
+//
+//        }.addTo(subscriptions)
 
+        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                val visibleItemCount = viewManager.childCount
+                val totalItemCount = viewManager.itemCount
+                val firstVisible =
+                    (viewManager as LinearLayoutManager).findFirstVisibleItemPosition()
+                if ((visibleItemCount + firstVisible) >= totalItemCount) {
+                    if (viewAdapter.adapterDataList.last() is TodoModel) {
 
+                        viewAdapter.adapterDataList.add(EmptyModel("Pobierz paczke", "get"))
+                        viewAdapter.notifyDataSetChanged()
+                    }
+                }
+            }
+        })
 
         sorting_button.clicks().map {
             viewAdapter.notifyDataSetChanged()
