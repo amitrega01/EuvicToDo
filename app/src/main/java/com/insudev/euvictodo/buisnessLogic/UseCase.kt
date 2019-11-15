@@ -15,6 +15,7 @@ class UseCase {
         val instance = UseCase()
     }
 
+
     fun getFilteredTodos(
         filter: Filters,
         sorting: Sorting,

@@ -1,11 +1,12 @@
 package com.insudev.euvictodo.mvi
 
 import com.insudev.euvictodo.models.Filters
+import com.insudev.euvictodo.models.ModelInterface
 import com.insudev.euvictodo.models.Sorting
 
 data class MainViewState(
     var isLoading: Boolean = true,
-    var todoList: ArrayList<Any> = ArrayList(),
+    var todoList: ArrayList<ModelInterface> = ArrayList(),
     var filter: Filters = Filters.ALL,
     var searchPhrase: String = "",
     var sorting: Sorting = Sorting.ASCENDING,

@@ -115,7 +115,8 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
         searchText.textChanges().map {
             viewAdapter.notifyDataSetChanged()
             return@map it.toString()
-        }.subscribe { search.onNext(it) }.addTo(subscriptions)
+        }
+            .subscribe { search.onNext(it) }.addTo(subscriptions)
 //        recyclerView.scrollStateChanges().map {
 //            if (recyclerView.canScrollVertically(1)) return@map 0
 //            else{

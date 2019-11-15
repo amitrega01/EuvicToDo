@@ -27,6 +27,13 @@ interface TodoService {
         @Path("take") take: Int
     ): Observable<ArrayList<TodoModel>>
 
+    @GET("/todos/s/{searchPhrase}/{filter}")
+    fun searchTodos(
+        @Path("searchPhrase") searchPhrase: String,
+        @Path("filter") filter: Filters
+    ): Observable<ArrayList<TodoModel>>
+
+
     @PUT("/todos/status/{id}/{filter}")
     fun setStatus(@Path("id") id: Int, @Path("filter") filter: Filters): Observable<JsonArray>
 

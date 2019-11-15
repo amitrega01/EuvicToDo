@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.insudev.euvictodo.models.EmptyModel
+import com.insudev.euvictodo.models.ModelInterface
 import com.insudev.euvictodo.models.TodoModel
 import com.jakewharton.rxbinding3.view.clicks
 import io.reactivex.rxkotlin.addTo
@@ -31,7 +32,7 @@ class DataAdapter(
     }
 
     private lateinit var instance: DataAdapter
-    var adapterDataList: ArrayList<Any> = ArrayList()
+    var adapterDataList: ArrayList<ModelInterface> = ArrayList()
 
     companion object {
         private const val TYPE_TODO = 0

@@ -2,6 +2,7 @@ package com.insudev.euvictodo.mvi
 
 import android.util.Log
 import com.insudev.euvictodo.models.Filters
+import com.insudev.euvictodo.models.ModelInterface
 import com.insudev.euvictodo.models.Sorting
 import com.insudev.euvictodo.models.TodoModel
 
@@ -23,7 +24,8 @@ class MainViewReducer {
                     is TodoListChangeResult.Completed -> {
                         currentState.isLoading = false
                         currentState.isLoadingFailed = false
-                        currentState.todoList = change.result.todoList!! as ArrayList<Any>
+                        currentState.todoList =
+                            change.result.todoList!! as ArrayList<ModelInterface>
                         currentState.listSize = change.result.todoList.size
                     }
                     is TodoListChangeResult.Error -> {
@@ -43,7 +45,8 @@ class MainViewReducer {
                         currentState.isLoading = false
                         currentState.isLoadingFailed = false
                         currentState.filter = change.result.change!! as Filters
-                        currentState.todoList = change.result.todoList!! as ArrayList<Any>
+                        currentState.todoList =
+                            change.result.todoList!! as ArrayList<ModelInterface>
                         currentState.listSize = change.result.todoList.size
                     }
                     is TodoListChangeResult.Error -> {
@@ -63,7 +66,8 @@ class MainViewReducer {
                         currentState.isLoading = false
                         currentState.isLoadingFailed = false
                         currentState.searchPhrase = change.result.change!! as String
-                        currentState.todoList = change.result.todoList!! as ArrayList<Any>
+                        currentState.todoList =
+                            change.result.todoList!! as ArrayList<ModelInterface>
                         currentState.listSize = change.result.todoList.size
                     }
                     is TodoListChangeResult.Error -> {

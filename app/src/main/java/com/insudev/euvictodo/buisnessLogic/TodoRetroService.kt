@@ -71,6 +71,18 @@ class TodoRetroService {
             .observeOn(AndroidSchedulers.mainThread())
     }
 
+
+    fun searchTodos(
+        searchPhrase: String,
+        filter: Filters
+    ): Observable<ArrayList<TodoModel>> {
+        return service.searchTodos(searchPhrase, filter)
+
+            .subscribeOn(Schedulers.io())
+
+            .observeOn(AndroidSchedulers.mainThread())
+    }
+
     fun setStatus(id: Int, filter: Filters): Observable<JsonArray> {
         val temp = service.setStatus(id, filter)
             .subscribeOn(Schedulers.io())

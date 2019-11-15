@@ -28,7 +28,7 @@ class MainPresenter(sharedPrefs: SharedPreferences) : MviBasePresenter<MainView,
     private val reducer: MainViewReducer = MainViewReducer()
     val sharedPrefs = sharedPrefs
     override fun bindIntents() {
-
+        //TODO To use case skip i take
         val initIntent = intent { it.initIntent }.switchMap {
             val array = retroService.getAllTodos()
                 return@switchMap array
@@ -56,6 +56,8 @@ class MainPresenter(sharedPrefs: SharedPreferences) : MviBasePresenter<MainView,
             else useCase.getEmpty()
         }.map { MainViewStateChange.ScrollChange(it) as MainViewStateChange }
 
+
+        //TODO To use case
         val addTodo = intent { it.addTodo }.observeOn(Schedulers.io())
             .switchMap {
                 retroService.addTodo(
@@ -73,24 +75,18 @@ class MainPresenter(sharedPrefs: SharedPreferences) : MviBasePresenter<MainView,
 
 
         val search = intent { it.search }
-            .switchMap {
-                val search = it
-                val array =
-                    retroService.getFilteredTodos(
-                        state.filter
-                        , state.sorting, 0, 10
-                    )
-                return@switchMap array.map {
-                    TodoListChangeResult.Completed(
-                        search,
-                        it
-                    ) as TodoListChangeResult
-                }
-                    .startWith(TodoListChangeResult.Pending())
-                    .onErrorReturn { TodoListChangeResult.Error(it.localizedMessage) }
+            .map {
+                TodoListChangeResult.Completed(
+                    it,
+                    ArrayList(state.todoList.filter { x -> x is TodoModel }) as ArrayList<TodoModel>
+                ) as TodoListChangeResult
             }
+            .startWith(TodoListChangeResult.Pending())
+            .onErrorReturn { TodoListChangeResult.Error("Błąd wyszukiwania") }
             .map { MainViewStateChange.SearchChange(it) as MainViewStateChange }
 
+
+        //TODO To use case
         val updateTodo = intent { it.updateTodo }
             .switchMap {
                 val array = retroService.setStatus(
@@ -118,7 +114,7 @@ class MainPresenter(sharedPrefs: SharedPreferences) : MviBasePresenter<MainView,
             .startWith(TodoListChangeResult.Pending())
             .onErrorReturn { TodoListChangeResult.Error(it.localizedMessage) }
             .map { MainViewStateChange.SortingChange(it) as MainViewStateChange }
-
+        //TODO To use case
         val clearFinished = intent { it.clearFinished }
             .switchMap {
                 val array = retroService.delete()
