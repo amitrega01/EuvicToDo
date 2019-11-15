@@ -116,16 +116,36 @@ class MainViewReducer {
                     }
                 }
             }
+            is MainViewStateChange.TodoAdded -> {
+                when (change.result) {
+                    is TodoListChangeResult.Pending -> {
+                        currentState.isLoading = true
+                        currentState.isLoadingFailed = false
+                    }
+                    is TodoListChangeResult.Completed -> {
+                        currentState.isLoading = false
+                        currentState.isLoadingFailed = false
+                        currentState.toSync =
+                            ArrayList(currentState.toSync + change.result.change as TodoModel)
+                        Log.i("TO SYNC", currentState.toSync.toString())
+                    }
+                    is TodoListChangeResult.Error -> {
+                        currentState.isLoading = false
+                        currentState.isLoadingFailed = true
+                        currentState.message = change.result.error
+                    }
+                }
+            }
         }
 
 //
         Log.i("LIST SIZE", currentState.listSize.toString())
-        currentState.todoList =
-            ArrayList(currentState.todoList.filter { x ->
-                (x as TodoModel).content.contains(
-                    currentState.searchPhrase
-                )
-            })
+//        currentState.todoList =
+//            ArrayList(currentState.todoList.filter { x ->
+//                (x as TodoModel).content.contains(
+//                    currentState.searchPhrase
+//                )
+//            })
 
 //        currentState.todoList = when (currentState.sorting) {
 //            Sorting.ASCENDING -> ArrayList(currentState.todoList.sortedWith(compareByDescending { it.timeStamp }))

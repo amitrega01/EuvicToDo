@@ -1,11 +1,10 @@
 package com.insudev.euvictodo.newTodoFragment.mvi
 
 import com.hannesdorfmann.mosby3.mvi.MviBasePresenter
-import com.insudev.euvictodo.buisnessLogic.TodoRetroService
 
 
 class NewTodoPresenter : MviBasePresenter<NewTodoView, NewTodoState>() {
-    private val retroService = TodoRetroService()
+
     private val reducer: NewTodoReducer = NewTodoReducer()
     override fun bindIntents() {
 

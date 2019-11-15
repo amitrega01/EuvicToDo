@@ -1,18 +1,41 @@
 package com.insudev.euvictodo.buisnessLogic
 
-import android.util.Log
 import com.insudev.euvictodo.models.Filters
 import com.insudev.euvictodo.models.Sorting
 import com.insudev.euvictodo.models.TodoModel
 import com.insudev.euvictodo.mvi.TodoListChangeResult
 import io.reactivex.Observable
+import retrofit2.Retrofit
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
+import retrofit2.converter.gson.GsonConverterFactory
 
 class UseCase {
 
-    val api = TodoRetroService()
+    private val retrofit = Retrofit.Builder()
+        .baseUrl("http://euvictodoapi.herokuapp.com/")
+        .addCallAdapterFactory(RxJava2CallAdapterFactory.createAsync())
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+
+    private val service = retrofit.create<TodoService>(TodoService::class.java)
+
+    val api = TodoRetroService(service)
 
     companion object {
         val instance = UseCase()
+    }
+
+    fun addTodo(content: String, prevId: Int): Observable<TodoListChangeResult> {
+        return Observable.just(
+            TodoListChangeResult.Completed(
+                TodoModel(
+                    prevId, System.currentTimeMillis(), content,
+                    false, arrayListOf("")
+                ), null
+            ) as TodoListChangeResult
+        )
+            .startWith(TodoListChangeResult.Pending())
+            .onErrorReturnItem(TodoListChangeResult.Error("Błąd dodawnaia notatki"))
     }
 
 
@@ -23,8 +46,6 @@ class UseCase {
         take: Int
     ): Observable<TodoListChangeResult> {
         return api.getFilteredTodos(filter, sorting, skip, take).map {
-            Log.i("SIZE FROM API", it.size.toString())
-
             if (it != null) {
                 if (it.size == 0) {
 
@@ -50,6 +71,10 @@ class UseCase {
             .onErrorReturnItem(TodoListChangeResult.Error("Error"))
 
 
+    }
+
+    fun getNextId(): Observable<Int> {
+        return api.getNextId()
     }
 
 }

@@ -6,5 +6,7 @@ sealed class MainViewStateChange {
     data class SearchChange(val result: TodoListChangeResult) : MainViewStateChange()
     data class SortingChange(val result: TodoListChangeResult) : MainViewStateChange()
     data class ScrollChange(val result: TodoListChangeResult) : MainViewStateChange()
+    data class TodoAdded(val result: TodoListChangeResult) : MainViewStateChange()
+
 
 }

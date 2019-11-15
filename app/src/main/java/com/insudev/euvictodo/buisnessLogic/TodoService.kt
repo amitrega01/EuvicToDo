@@ -17,7 +17,7 @@ interface TodoService {
     fun getAllTodos(): Observable<JsonArray>
 
     @PUT("/todos/add/{content}/{filter}")
-    fun addTodo(@Path("content") content: String, @Path("filter") filter: Filters): Observable<JsonArray>
+    fun addTodo(@Path("content") content: String, @Path("filter") filter: Filters): Observable<ArrayList<TodoModel>>
 
     @GET("/todos/filter/{filter}/{sorting}/{skip}/{take}")
     fun getFilteredTodos(
@@ -39,5 +39,9 @@ interface TodoService {
 
     @DELETE("/todos")
     fun delete(): Observable<JsonArray>
+
+
+    @GET("/todos/nextId")
+    fun getNextId(): Observable<Int>
 
 }

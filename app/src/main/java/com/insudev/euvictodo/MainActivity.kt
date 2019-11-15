@@ -48,14 +48,14 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
 
     override fun render(state: MainViewState) {
         loadingIndicator.visible = state.isLoading
-
+        fab_sync.visible = false
         if (state.isLoadingFailed) {
             Toast.makeText(this, state.message, Toast.LENGTH_LONG)
             Log.i("ERR", state.message)
             AlertDialog.Builder(this).setTitle("Error").setMessage(state.message).show()
         } else {
             Log.i("STATE", state.toString())
-            viewAdapter.adapterDataList = state.todoList
+            viewAdapter.adapterDataList = ArrayList((state.toSync + state.todoList).distinct())
             clear_button.visible = when (state.filter) {
                 Filters.FINISHED -> true
                 else -> false
@@ -64,6 +64,9 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
                 Sorting.DESCENDING -> "DESC"
                 Sorting.ASCENDING -> "ASC"
             }
+
+            if (state.toSync.size >= 1) fab_sync.visible = true
+
             viewAdapter.notifyDataSetChanged()
         }
 
