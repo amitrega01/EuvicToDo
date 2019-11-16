@@ -55,6 +55,9 @@ class MainPresenter(sharedPrefs: SharedPreferences) : MviBasePresenter<MainView,
             .onErrorReturn { TodoListChangeResult.Error("Błąd wyszukiwania") }
             .map { MainViewStateChange.SearchChange(it) as MainViewStateChange }
 
+        val syncList = intent { it.syncList }
+            .switchMap { useCase.sync(state.toSync) }
+            .map { MainViewStateChange.Synced(it) as MainViewStateChange }
 
         //TODO To use case
 //        val updateTodo = intent { it.updateTodo }
@@ -110,6 +113,7 @@ class MainPresenter(sharedPrefs: SharedPreferences) : MviBasePresenter<MainView,
             .merge(initIntent, addTodo, filterChange, search)
             .mergeWith(sortingChange)
             .mergeWith(scrollChange)
+            .mergeWith(syncList)
             .scan(MainViewState()) { state: MainViewState, change: MainViewStateChange ->
                 return@scan reducer.reduce(state, change)
             }

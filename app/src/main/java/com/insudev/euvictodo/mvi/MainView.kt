@@ -14,6 +14,7 @@ interface MainView : MvpView {
     val sortingChange: Observable<Sorting>
     val clearFinished: Observable<Unit>
     val scrollChange: Observable<Int>
+    val syncList: Observable<Unit>
     fun render(state: MainViewState)
 }
 

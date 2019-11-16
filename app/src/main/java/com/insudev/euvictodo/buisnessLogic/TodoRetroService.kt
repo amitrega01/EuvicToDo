@@ -14,26 +14,7 @@ class TodoRetroService(val service: TodoService) {
     //TODO uprzatnac projekt, paginacja, obluga bledow onErrorreturnNext, USeCase,
 
 
-    var listType = object : TypeToken<ArrayList<TodoModel>>() {}.type
 
-    fun getAllTodos(): Observable<JsonArray> {
-        Log.i("API2", "Subscribing")
-
-        val temp = service.getAllTodos()
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-        return temp
-    }
-
-    fun addTodo(
-        content: String,
-        filter: Filters,
-        sorting: Sorting
-    ): Observable<ArrayList<TodoModel>> {
-        return service.addTodo(content, filter)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-    }
 
     fun getFilteredTodos(
         filter: Filters,
@@ -46,6 +27,17 @@ class TodoRetroService(val service: TodoService) {
             .observeOn(AndroidSchedulers.mainThread())
     }
 
+
+    fun getNextId(): Observable<Int> {
+        return service.getNextId()
+
+    }
+
+    fun sync(toSync: ArrayList<TodoModel>): Observable<Boolean> {
+        return service.sync(toSync)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+    }
 
     fun searchTodos(
         searchPhrase: String,
@@ -74,10 +66,24 @@ class TodoRetroService(val service: TodoService) {
         return temp
     }
 
-    fun getNextId(): Observable<Int> {
-        return service.getNextId()
+    var listType = object : TypeToken<ArrayList<TodoModel>>() {}.type
 
+    fun getAllTodos(): Observable<JsonArray> {
+        Log.i("API2", "Subscribing")
+
+        val temp = service.getAllTodos()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+        return temp
     }
 
-
+    fun addTodo(
+        content: String,
+        filter: Filters,
+        sorting: Sorting
+    ): Observable<ArrayList<TodoModel>> {
+        return service.addTodo(content, filter)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+    }
 }

@@ -26,6 +26,7 @@ import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.new_todo_dialog.*
 
+
 class MainActivity : MviActivity<MainView, MainPresenter>(),
     MainView {
 
@@ -45,7 +46,7 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
     override val sortingChange = PublishSubject.create<Sorting>()
     override val clearFinished = PublishSubject.create<Unit>()
     override val scrollChange = PublishSubject.create<Int>()
-
+    override lateinit var syncList: Observable<Unit>
     override fun render(state: MainViewState) {
         loadingIndicator.visible = state.isLoading
         fab_sync.visible = false
@@ -76,8 +77,13 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+
         dialog = NewTodoDialog(this)
         loadingIndicator.visible = true
+
+        syncList = fab_sync.clicks()
+
 
         fab_newTodo.setOnClickListener {
             dialog.show()
@@ -101,7 +107,6 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
             adapter = viewAdapter
         }
 
-
         group.checkedChanges().map {
             Log.i("MAPPING", it.toString())
             viewAdapter.notifyDataSetChanged()
@@ -114,26 +119,12 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
 
         }.subscribe { changeFilter.onNext(it) }.addTo(subscriptions)
 
-
         searchText.textChanges().map {
             viewAdapter.notifyDataSetChanged()
             return@map it.toString()
         }
             .subscribe { search.onNext(it) }.addTo(subscriptions)
-//        recyclerView.scrollStateChanges().map {
-//            if (recyclerView.canScrollVertically(1)) return@map 0
-//            else{
-//                Log.i("ADAPTER", "Adding")
-//                viewAdapter.notifyDataSetChanged()
-//                return@map 3
-//            }}.subscribe {
-//            Log.i("SCROLL", it.toString())
-//            if (it == 3 && viewAdapter.adapterDataList.last() is TodoModel)
-//                viewAdapter.adapterDataList.add(EmptyModel("Pobierz paczke", "get"))
-//            viewAdapter.notifyDataSetChanged()
-////            scrollChange.onNext(it)
-//
-//        }.addTo(subscriptions)
+
 
         recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {

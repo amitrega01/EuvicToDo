@@ -5,10 +5,7 @@ import com.insudev.euvictodo.models.Filters
 import com.insudev.euvictodo.models.Sorting
 import com.insudev.euvictodo.models.TodoModel
 import io.reactivex.Observable
-import retrofit2.http.DELETE
-import retrofit2.http.GET
-import retrofit2.http.PUT
-import retrofit2.http.Path
+import retrofit2.http.*
 
 
 interface TodoService {
@@ -44,4 +41,7 @@ interface TodoService {
     @GET("/todos/nextId")
     fun getNextId(): Observable<Int>
 
+    @Headers("Accept: application/json")
+    @POST("/todos/sync")
+    fun sync(@Body toSync: ArrayList<TodoModel>): Observable<Boolean>
 }
