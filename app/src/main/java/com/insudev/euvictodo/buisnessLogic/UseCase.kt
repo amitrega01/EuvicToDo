@@ -38,6 +38,14 @@ class UseCase {
             .onErrorReturnItem(TodoListChangeResult.Error("Błąd dodawnaia notatki"))
     }
 
+    fun sync(toSync: ArrayList<TodoModel>): Observable<TodoListChangeResult> {
+        return api.sync(toSync)
+            .map {
+                if (it) TodoListChangeResult.Completed("Zsynchronizowano", null)
+                else TodoListChangeResult.Error("Błąd synchronizacji")
+            }.startWith(TodoListChangeResult.Pending())
+            .onErrorReturnItem(TodoListChangeResult.Error("Błąd synchronizacji"))
+    }
 
     fun getFilteredTodos(
         filter: Filters,
