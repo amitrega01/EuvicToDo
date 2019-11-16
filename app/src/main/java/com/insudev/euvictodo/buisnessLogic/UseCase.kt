@@ -1,6 +1,7 @@
 package com.insudev.euvictodo.buisnessLogic
 
 import com.insudev.euvictodo.models.Filters
+import com.insudev.euvictodo.models.ModelInterface
 import com.insudev.euvictodo.models.Sorting
 import com.insudev.euvictodo.models.TodoModel
 import com.insudev.euvictodo.mvi.TodoListChangeResult
@@ -83,6 +84,32 @@ class UseCase {
 
     fun getNextId(): Observable<Int> {
         return api.getNextId()
+    }
+
+    fun updateStatus(
+        id: Int,
+        todoList: ArrayList<ModelInterface>,
+        syncList: ArrayList<TodoModel>
+    ): Observable<TodoListChangeResult> {
+        val todos = ArrayList(todoList.filterIsInstance<TodoModel>())
+        var toSync: TodoModel
+        try {
+            val index = todos.indexOfFirst { x -> x.id == id }
+            toSync = todos.removeAt(index)
+        } catch (e: ArrayIndexOutOfBoundsException) {
+
+            val index = syncList.indexOfFirst { x -> x.id == id }
+            toSync = syncList.removeAt(index)
+        }
+        toSync.status = !toSync.status
+        return Observable.just(
+            TodoListChangeResult.Completed(
+                toSync,
+                todos
+            ) as TodoListChangeResult
+        )
+            .startWith(TodoListChangeResult.Pending())
+            .onErrorReturnItem(TodoListChangeResult.Error("Error"))
     }
 
 }

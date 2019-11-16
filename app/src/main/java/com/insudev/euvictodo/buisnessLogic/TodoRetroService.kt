@@ -34,7 +34,7 @@ class TodoRetroService(val service: TodoService) {
     }
 
     fun sync(toSync: ArrayList<TodoModel>): Observable<Boolean> {
-        return service.sync(toSync)
+        return service.sync("application/json", toSync)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
     }

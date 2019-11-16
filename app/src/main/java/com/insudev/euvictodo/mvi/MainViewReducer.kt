@@ -126,8 +126,28 @@ class MainViewReducer {
                         currentState.isLoading = false
                         currentState.isLoadingFailed = false
                         currentState.toSync =
-                            ArrayList(currentState.toSync + change.result.change as TodoModel)
+                            ArrayList((currentState.toSync + change.result.change as TodoModel).distinctBy { x -> x.id })
                         Log.i("TO SYNC", currentState.toSync.toString())
+                    }
+                    is TodoListChangeResult.Error -> {
+                        currentState.isLoading = false
+                        currentState.isLoadingFailed = true
+                        currentState.message = change.result.error
+                    }
+                }
+            }
+            is MainViewStateChange.TodoUpdated -> {
+                when (change.result) {
+                    is TodoListChangeResult.Pending -> {
+                        currentState.isLoading = true
+                        currentState.isLoadingFailed = false
+                    }
+                    is TodoListChangeResult.Completed -> {
+                        currentState.isLoading = false
+                        currentState.isLoadingFailed = false
+                        currentState.toSync =
+                            ArrayList(currentState.toSync + change.result.change as TodoModel)
+                        currentState.todoList = change.result.todoList as ArrayList<ModelInterface>
                     }
                     is TodoListChangeResult.Error -> {
                         currentState.isLoading = false

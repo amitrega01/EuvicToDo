@@ -1,7 +1,6 @@
 package com.insudev.euvictodo.mvi
 
 import android.content.SharedPreferences
-import com.google.gson.reflect.TypeToken
 import com.hannesdorfmann.mosby3.mvi.MviBasePresenter
 import com.insudev.euvictodo.buisnessLogic.UseCase
 import com.insudev.euvictodo.models.TodoModel
@@ -15,8 +14,6 @@ class MainPresenter(sharedPrefs: SharedPreferences) : MviBasePresenter<MainView,
 
     private val useCase = UseCase.instance
 
-    var listType = object : TypeToken<ArrayList<TodoModel>>() {
-    }.type
 
     private val reducer: MainViewReducer = MainViewReducer()
     val sharedPrefs = sharedPrefs
@@ -40,7 +37,9 @@ class MainPresenter(sharedPrefs: SharedPreferences) : MviBasePresenter<MainView,
 
 
         val filterChange = intent { it.changeFilter }
-            .switchMap { useCase.getFilteredTodos(it, state.sorting, 0, 11) }
+            .switchMap {
+                useCase.getFilteredTodos(it, state.sorting, 0, 11)
+            }
             .map { MainViewStateChange.FilterChange(it) as MainViewStateChange }
 
 
@@ -60,27 +59,10 @@ class MainPresenter(sharedPrefs: SharedPreferences) : MviBasePresenter<MainView,
             .map { MainViewStateChange.Synced(it) as MainViewStateChange }
 
         //TODO To use case
-//        val updateTodo = intent { it.updateTodo }
-//            .switchMap {
-//                val array = retroService.setStatus(
-//                    it,
-//                    viewStateObservable.map { return@map it.filter }.blockingFirst(Filters.ALL)
-//                )
-//                return@switchMap array
-//                    .map {
-//                        TodoListChangeResult.Completed(
-//                            null,
-//                            Gson().fromJson(
-//                                it,
-//                                listType
-//                            )
-//                        ) as TodoListChangeResult
-//                    }
-//                    .startWith(TodoListChangeResult.Pending())
-//                    .onErrorReturn { TodoListChangeResult.Error(it.localizedMessage) }
-//            }.map {
-//                return@map MainViewStateChange.TodoListChange(it) as MainViewStateChange
-//            }
+        val updateTodo = intent { it.updateTodo }
+            .switchMap { useCase.updateStatus(it, state.todoList, state.toSync) }
+            .map { MainViewStateChange.TodoUpdated(it) as MainViewStateChange }
+
 
         val sortingChange = intent { it.sortingChange }
             .map { TodoListChangeResult.Completed(it, null) as TodoListChangeResult }
@@ -114,6 +96,7 @@ class MainPresenter(sharedPrefs: SharedPreferences) : MviBasePresenter<MainView,
             .mergeWith(sortingChange)
             .mergeWith(scrollChange)
             .mergeWith(syncList)
+            .mergeWith(updateTodo)
             .scan(MainViewState()) { state: MainViewState, change: MainViewStateChange ->
                 return@scan reducer.reduce(state, change)
             }

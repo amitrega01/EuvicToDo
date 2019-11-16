@@ -54,6 +54,7 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
             Toast.makeText(this, state.message, Toast.LENGTH_LONG)
             Log.i("ERR", state.message)
             AlertDialog.Builder(this).setTitle("Error").setMessage(state.message).show()
+
         } else {
             Log.i("STATE", state.toString())
             viewAdapter.adapterDataList = ArrayList((state.toSync + state.todoList).distinct())
@@ -81,8 +82,6 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
 
         dialog = NewTodoDialog(this)
         loadingIndicator.visible = true
-
-        syncList = fab_sync.clicks()
 
 
         fab_newTodo.setOnClickListener {
@@ -156,6 +155,10 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
             viewAdapter.notifyDataSetChanged()
         }.subscribe { clearFinished.onNext(it) }.addTo(subscriptions)
 
+
+
+        syncList = fab_sync.clicks()
+
     }
 
     override fun createPresenter(): MainPresenter {
@@ -168,6 +171,11 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
         viewAdapter.notifyDataSetChanged()
     }
 
+    override fun onPause() {
+        super.onPause()
+        Log.i("LIFECYCLE", "pause")
+        syncList = Observable.just(Unit)
+    }
     override fun onDestroy() {
         super.onDestroy()
         subscriptions.clear()

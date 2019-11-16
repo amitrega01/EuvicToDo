@@ -41,7 +41,6 @@ interface TodoService {
     @GET("/todos/nextId")
     fun getNextId(): Observable<Int>
 
-    @Headers("Accept: application/json")
     @POST("/todos/sync")
-    fun sync(@Body toSync: ArrayList<TodoModel>): Observable<Boolean>
+    fun sync(@Header("Content-Type") contenttype: String = "application/json", @Body toSync: ArrayList<TodoModel>): Observable<Boolean>
 }
