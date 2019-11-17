@@ -45,14 +45,12 @@ class DataAdapter(
         @TargetApi(Build.VERSION_CODES.O)
         override fun bind(item: TodoModel) {
 
-            val todo = item
-
-            itemView.content.text = todo.content
-            itemView.checkBox_status.isChecked = todo.status
+            itemView.content.text = item.content
+            itemView.checkBox_status.isChecked = item.status
             itemView.text_date.text = java.time.format.DateTimeFormatter.ISO_INSTANT
-                .format(java.time.Instant.ofEpochSecond(todo.timeStamp))
+                .format(java.time.Instant.ofEpochSecond(item.timeStamp))
 
-            if (todo.status) {
+            if (item.status) {
                 itemView.content.paintFlags = Paint.STRIKE_THRU_TEXT_FLAG
             } else {
                 itemView.content.paintFlags = Paint.ANTI_ALIAS_FLAG
@@ -60,7 +58,7 @@ class DataAdapter(
 
             itemView.checkBox_status.clicks().map {
                 instance.notifyDataSetChanged()
-                return@map todo.id
+                return@map item.id
             }.subscribe { (context as MainActivity).updateTodo.onNext(it) }
                 .addTo((context as MainActivity).subscriptions)
         }
@@ -121,8 +119,8 @@ class DataAdapter(
 
     override fun getItemViewType(position: Int): Int {
         val comparable = adapterDataList[position]
-        if (comparable is TodoModel) return TYPE_TODO
-        else return TYPE_EMPTY
+        return if (comparable is TodoModel) TYPE_TODO
+        else TYPE_EMPTY
     }
 
 }

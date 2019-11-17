@@ -8,7 +8,7 @@ class NewTodoPresenter : MviBasePresenter<NewTodoView, NewTodoState>() {
     private val reducer: NewTodoReducer = NewTodoReducer()
     override fun bindIntents() {
 
-        var newTodoContent = intent { it.newTodoContent }
+        val newTodoContent = intent { it.newTodoContent }
             .map { ContentChangeResult.Completed(it) as ContentChangeResult }
             .startWith(ContentChangeResult.Pending())
             .onErrorReturn { ContentChangeResult.Error(it.localizedMessage) }
@@ -16,7 +16,7 @@ class NewTodoPresenter : MviBasePresenter<NewTodoView, NewTodoState>() {
 
         var addNew = intent { it.addNew }
 
-        var stream =
+        val stream =
             newTodoContent.scan(NewTodoState()) { state: NewTodoState, change: NewTodoStateChange ->
                 return@scan reducer.reduce(state, change)
             }

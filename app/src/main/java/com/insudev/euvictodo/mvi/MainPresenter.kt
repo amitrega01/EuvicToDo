@@ -1,13 +1,12 @@
 package com.insudev.euvictodo.mvi
 
-import android.content.SharedPreferences
 import com.hannesdorfmann.mosby3.mvi.MviBasePresenter
 import com.insudev.euvictodo.buisnessLogic.UseCase
 import com.insudev.euvictodo.models.TodoModel
 import io.reactivex.Observable
 
 
-class MainPresenter(sharedPrefs: SharedPreferences) : MviBasePresenter<MainView, MainViewState>() {
+class MainPresenter : MviBasePresenter<MainView, MainViewState>() {
 
 
     private lateinit var state: MainViewState
@@ -16,7 +15,6 @@ class MainPresenter(sharedPrefs: SharedPreferences) : MviBasePresenter<MainView,
 
 
     private val reducer: MainViewReducer = MainViewReducer()
-    val sharedPrefs = sharedPrefs
     override fun bindIntents() {
         //TODO To use case skip i take
         val initIntent = intent { it.initIntent }.switchMap {
@@ -32,7 +30,12 @@ class MainPresenter(sharedPrefs: SharedPreferences) : MviBasePresenter<MainView,
 
         //TODO To use case
         val addTodo = intent { it.addTodo }
-            .switchMap { useCase.addTodo(it, useCase.getNextId().blockingFirst()) }
+            .switchMap {
+                useCase.addTodo(
+                    it,
+                    useCase.getNextId().blockingFirst() + state.toSync.size + 1
+                )
+            }
             .map { MainViewStateChange.TodoAdded(it) as MainViewStateChange }
 
 
@@ -47,7 +50,7 @@ class MainPresenter(sharedPrefs: SharedPreferences) : MviBasePresenter<MainView,
             .map {
                 TodoListChangeResult.Completed(
                     it,
-                    ArrayList(state.todoList.filter { x -> x is TodoModel }) as ArrayList<TodoModel>
+                    ArrayList(state.todoList.filterIsInstance<TodoModel>()) as ArrayList<TodoModel>
                 ) as TodoListChangeResult
             }
             .startWith(TodoListChangeResult.Pending())

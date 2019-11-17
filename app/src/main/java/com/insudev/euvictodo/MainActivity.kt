@@ -1,9 +1,11 @@
 package com.insudev.euvictodo
 
 import android.app.AlertDialog
-import android.content.Context
+
 import android.os.Bundle
 import android.util.Log
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -30,7 +32,7 @@ import kotlinx.android.synthetic.main.new_todo_dialog.*
 class MainActivity : MviActivity<MainView, MainPresenter>(),
     MainView {
 
-    lateinit var dialog: NewTodoDialog
+    private lateinit var dialog: NewTodoDialog
 
     private lateinit var recyclerView: RecyclerView
     lateinit var viewAdapter: DataAdapter
@@ -47,15 +49,22 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
     override val clearFinished = PublishSubject.create<Unit>()
     override val scrollChange = PublishSubject.create<Int>()
     override lateinit var syncList: Observable<Unit>
+
+    private lateinit var slideUp: Animation
+
+    private lateinit var slideDown: Animation
+
     override fun render(state: MainViewState) {
         loadingIndicator.visible = state.isLoading
-        fab_sync.visible = false
+
         if (state.isLoadingFailed) {
+
             Toast.makeText(this, state.message, Toast.LENGTH_LONG)
             Log.i("ERR", state.message)
             AlertDialog.Builder(this).setTitle("Error").setMessage(state.message).show()
 
         } else {
+
             Log.i("STATE", state.toString())
             viewAdapter.adapterDataList = ArrayList((state.toSync + state.todoList).distinct())
             clear_button.visible = when (state.filter) {
@@ -67,11 +76,16 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
                 Sorting.ASCENDING -> "ASC"
             }
 
-            if (state.toSync.size >= 1) fab_sync.visible = true
+            if (state.toSync.size >= 1) {
+                fab_sync.visible = true
+
+                fab_sync.startAnimation(slideUp)
+            }
+
 
             viewAdapter.notifyDataSetChanged()
-        }
 
+        }
 
     }
 
@@ -79,6 +93,8 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        slideUp = AnimationUtils.loadAnimation(this, R.anim.slide_up)
+        slideDown = AnimationUtils.loadAnimation(this, R.anim.slide_down)
 
         dialog = NewTodoDialog(this)
         loadingIndicator.visible = true
@@ -109,12 +125,11 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
         group.checkedChanges().map {
             Log.i("MAPPING", it.toString())
             viewAdapter.notifyDataSetChanged()
-            if (it == radio_all.id)
-                return@map Filters.ALL
-            else if (it == radio_todo.id)
-                return@map Filters.UNFINISHED
-            else
-                return@map Filters.FINISHED
+            when (it) {
+                radio_all.id -> return@map Filters.ALL
+                radio_todo.id -> return@map Filters.UNFINISHED
+                else -> return@map Filters.FINISHED
+            }
 
         }.subscribe { changeFilter.onNext(it) }.addTo(subscriptions)
 
@@ -162,8 +177,7 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
     }
 
     override fun createPresenter(): MainPresenter {
-        val sharedPreferences = getSharedPreferences("MAIN", Context.MODE_PRIVATE)
-        return MainPresenter(sharedPreferences)
+        return MainPresenter()
 
     }
 
@@ -176,6 +190,7 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
         Log.i("LIFECYCLE", "pause")
         syncList = Observable.just(Unit)
     }
+
     override fun onDestroy() {
         super.onDestroy()
         subscriptions.clear()

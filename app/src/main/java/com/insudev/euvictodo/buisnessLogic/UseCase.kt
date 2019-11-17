@@ -20,7 +20,7 @@ class UseCase {
 
     private val service = retrofit.create<TodoService>(TodoService::class.java)
 
-    val api = TodoRetroService(service)
+    private val api = TodoRetroService(service)
 
     companion object {
         val instance = UseCase()
@@ -30,7 +30,7 @@ class UseCase {
         return Observable.just(
             TodoListChangeResult.Completed(
                 TodoModel(
-                    prevId, System.currentTimeMillis(), content,
+                    prevId, System.currentTimeMillis() / 1000, content,
                     false, arrayListOf("")
                 ), null
             ) as TodoListChangeResult
@@ -93,13 +93,13 @@ class UseCase {
     ): Observable<TodoListChangeResult> {
         val todos = ArrayList(todoList.filterIsInstance<TodoModel>())
         var toSync: TodoModel
-        try {
+        toSync = try {
             val index = todos.indexOfFirst { x -> x.id == id }
-            toSync = todos.removeAt(index)
+            todos.removeAt(index)
         } catch (e: ArrayIndexOutOfBoundsException) {
 
             val index = syncList.indexOfFirst { x -> x.id == id }
-            toSync = syncList.removeAt(index)
+            syncList.removeAt(index)
         }
         toSync.status = !toSync.status
         return Observable.just(
