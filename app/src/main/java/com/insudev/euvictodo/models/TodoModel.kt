@@ -6,8 +6,8 @@ import kotlinx.serialization.Serializable
 data class TodoModel(
 
      var id: Int,
-     var timeStamp: Long,
+     override var timeStamp: Long,
      var content: String,
      var status: Boolean,
      var tags: ArrayList<String>
-)
+) : ModelInterface

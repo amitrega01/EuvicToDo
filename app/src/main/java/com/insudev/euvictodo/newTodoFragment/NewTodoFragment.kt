@@ -27,7 +27,7 @@ class NewTodoFragment : MviFragment<NewTodoView, NewTodoPresenter>(), NewTodoVie
 
     override val newTodoContent = PublishSubject.create<String>()
     override val addNew = PublishSubject.create<Unit>()
-    val subscriptions = CompositeDisposable()
+    private val subscriptions = CompositeDisposable()
 
     override fun createPresenter(): NewTodoPresenter {
         return NewTodoPresenter()

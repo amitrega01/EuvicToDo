@@ -1,7 +1,7 @@
-package com.insudev.euvictodo.MainList
+package com.insudev.euvictodo.mvi
 
 import com.hannesdorfmann.mosby3.mvp.MvpView
-import com.insudev.euvictodo.buisnesslogic.Filters
+import com.insudev.euvictodo.models.Filters
 import com.insudev.euvictodo.models.Sorting
 import io.reactivex.Observable
 
@@ -14,6 +14,7 @@ interface MainView : MvpView {
     val sortingChange: Observable<Sorting>
     val clearFinished: Observable<Unit>
     val scrollChange: Observable<Int>
+    val syncList: Observable<Unit>
     fun render(state: MainViewState)
 }
 

@@ -1,20 +1,23 @@
 package com.insudev.euvictodo
 
 import android.app.AlertDialog
-import android.content.Context
+
 import android.os.Bundle
 import android.util.Log
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.hannesdorfmann.mosby3.mvi.MviActivity
-import com.insudev.euvictodo.MainList.MainPresenter
-import com.insudev.euvictodo.MainList.MainView
-import com.insudev.euvictodo.MainList.MainViewState
-import com.insudev.euvictodo.buisnesslogic.Filters
 import com.insudev.euvictodo.dialogNewTodo.NewTodoDialog
+import com.insudev.euvictodo.models.EmptyModel
+import com.insudev.euvictodo.models.Filters
 import com.insudev.euvictodo.models.Sorting
-import com.jakewharton.rxbinding3.recyclerview.scrollStateChanges
+import com.insudev.euvictodo.models.TodoModel
+import com.insudev.euvictodo.mvi.MainPresenter
+import com.insudev.euvictodo.mvi.MainView
+import com.insudev.euvictodo.mvi.MainViewState
 import com.jakewharton.rxbinding3.view.clicks
 import com.jakewharton.rxbinding3.widget.checkedChanges
 import com.jakewharton.rxbinding3.widget.textChanges
@@ -24,21 +27,15 @@ import io.reactivex.rxkotlin.addTo
 import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.new_todo_dialog.*
-class MainActivity : MviActivity<MainView, MainPresenter>(),
-    MainView {
 
-
-    //TODO api nestjs -> retrofit + wrapper na rx, paginacja doddawanie do obecnej listy ,
-    // flipper | steto
-    // dodawanie osobny fragment I MVI DO TEGO, obluga bledow, (cos co zwraca error)
 
 class MainActivity : MviActivity<MainView, MainPresenter>(),
     MainView {
 
-    lateinit var dialog: NewTodoDialog
+    private lateinit var dialog: NewTodoDialog
 
     private lateinit var recyclerView: RecyclerView
-    lateinit var viewAdapter: TodoAdapter
+    lateinit var viewAdapter: DataAdapter
     private lateinit var viewManager: RecyclerView.LayoutManager
 
     val subscriptions = CompositeDisposable()
@@ -51,17 +48,25 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
     override val sortingChange = PublishSubject.create<Sorting>()
     override val clearFinished = PublishSubject.create<Unit>()
     override val scrollChange = PublishSubject.create<Int>()
+    override lateinit var syncList: Observable<Unit>
+
+    private lateinit var slideUp: Animation
+
+    private lateinit var slideDown: Animation
 
     override fun render(state: MainViewState) {
         loadingIndicator.visible = state.isLoading
 
         if (state.isLoadingFailed) {
+
             Toast.makeText(this, state.message, Toast.LENGTH_LONG)
             Log.i("ERR", state.message)
             AlertDialog.Builder(this).setTitle("Error").setMessage(state.message).show()
+
         } else {
+
             Log.i("STATE", state.toString())
-            viewAdapter.myDataset = state.todoList
+            viewAdapter.adapterDataList = ArrayList((state.toSync + state.todoList).distinct())
             clear_button.visible = when (state.filter) {
                 Filters.FINISHED -> true
                 else -> false
@@ -70,15 +75,30 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
                 Sorting.DESCENDING -> "DESC"
                 Sorting.ASCENDING -> "ASC"
             }
+
+            if (state.toSync.size >= 1) {
+                fab_sync.visible = true
+
+                fab_sync.startAnimation(slideUp)
+            }
+
+
             viewAdapter.notifyDataSetChanged()
+
         }
+
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        slideUp = AnimationUtils.loadAnimation(this, R.anim.slide_up)
+        slideDown = AnimationUtils.loadAnimation(this, R.anim.slide_down)
+
         dialog = NewTodoDialog(this)
         loadingIndicator.visible = true
+
 
         fab_newTodo.setOnClickListener {
             dialog.show()
@@ -95,40 +115,47 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
         }
 
         viewManager = LinearLayoutManager(this)
-        viewAdapter = TodoAdapter(this)
+        viewAdapter = DataAdapter(this)
         recyclerView = findViewById<RecyclerView>(R.id.recycler).apply {
             setHasFixedSize(true)
             layoutManager = viewManager
             adapter = viewAdapter
         }
 
-        recyclerView.scrollStateChanges().map {
-            if (recyclerView.canScrollVertically(1)) return@map 0
-            else return@map 3
-        }.subscribe {
-            Log.i("SCROLL", it.toString())
-            scrollChange.onNext(it)
-        }.addTo(subscriptions)
-
         group.checkedChanges().map {
             Log.i("MAPPING", it.toString())
             viewAdapter.notifyDataSetChanged()
-            if (it == radio_all.id)
-                return@map Filters.ALL
-            else if (it == radio_todo.id)
-                return@map Filters.UNFINISHED
-            else
-                return@map Filters.FINISHED
+            when (it) {
+                radio_all.id -> return@map Filters.ALL
+                radio_todo.id -> return@map Filters.UNFINISHED
+                else -> return@map Filters.FINISHED
+            }
 
         }.subscribe { changeFilter.onNext(it) }.addTo(subscriptions)
-
 
         searchText.textChanges().map {
             viewAdapter.notifyDataSetChanged()
             return@map it.toString()
-        }.subscribe { search.onNext(it) }.addTo(subscriptions)
+        }
+            .subscribe { search.onNext(it) }.addTo(subscriptions)
 
 
+        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                val visibleItemCount = viewManager.childCount
+                val totalItemCount = viewManager.itemCount
+                val firstVisible =
+                    (viewManager as LinearLayoutManager).findFirstVisibleItemPosition()
+                if ((visibleItemCount + firstVisible) >= totalItemCount) {
+                    if (viewAdapter.adapterDataList.last() is TodoModel) {
+
+                        viewAdapter.adapterDataList.add(EmptyModel("Pobierz paczke", "get"))
+                        viewAdapter.notifyDataSetChanged()
+                    }
+                }
+            }
+        })
 
         sorting_button.clicks().map {
             viewAdapter.notifyDataSetChanged()
@@ -143,16 +170,25 @@ class MainActivity : MviActivity<MainView, MainPresenter>(),
             viewAdapter.notifyDataSetChanged()
         }.subscribe { clearFinished.onNext(it) }.addTo(subscriptions)
 
+
+
+        syncList = fab_sync.clicks()
+
     }
 
     override fun createPresenter(): MainPresenter {
-        val sharedPreferences = getSharedPreferences("MAIN", Context.MODE_PRIVATE)
-        return MainPresenter(sharedPreferences)
+        return MainPresenter()
 
     }
 
     fun not() {
         viewAdapter.notifyDataSetChanged()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        Log.i("LIFECYCLE", "pause")
+        syncList = Observable.just(Unit)
     }
 
     override fun onDestroy() {

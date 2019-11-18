@@ -27,7 +27,7 @@ class NewTodoDialog(context: Context) : Dialog(context) {
 
     }
 
-    fun close() {
+    private fun close() {
         this.dismiss()
     }
 }

@@ -21,15 +21,15 @@ class NewTodoActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
 
-        verticalLayout{
+        verticalLayout {
 
-            val editContent = editText{
+            val editContent = editText {
                 hint = "Title"
                 textSize = 24f
             }
-            button{
+            button {
                 onClick {
-                    var listType = object : TypeToken<ArrayList<TodoModel>>() {
+                    val listType = object : TypeToken<ArrayList<TodoModel>>() {
 
                     }.type
                     val sharedPrefs = getSharedPreferences("MAIN", Context.MODE_PRIVATE)
@@ -54,7 +54,7 @@ class NewTodoActivity : AppCompatActivity() {
                         )
                     )
                     Log.i("DODAWANIE", Gson().toJson(array))
-                    editor.putString("JSON",Gson().toJson(array)).commit()
+                    editor.putString("JSON", Gson().toJson(array)).commit()
                     finish()
                 }
                 title = "Add"
